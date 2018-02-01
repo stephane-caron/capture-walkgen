@@ -30,14 +30,13 @@ try:  # use local pymanoid submodule
 except:  # avoid warning E402 from Pylint :p
     pass
 
-from numpy import dot, random, sqrt
+from numpy import dot, sqrt
 from pymanoid import PointMass, Stance
 from pymanoid.contact import ContactFeed
 from pymanoid.gui import draw_line, draw_point
 from pymanoid.gui import TrajectoryDrawer
 from pymanoid.models import InvertedPendulum
 from pymanoid.sim import gravity_const
-from time import sleep, time
 
 from capture_walking import DoubleSupportController
 from capture_walking import OneStepController
@@ -55,14 +54,17 @@ TARGET_COM_HEIGHT = 0.8
 CONTACT_IK_WEIGHT = 1.
 SWING_FOOT_IK_WEIGHT = 1e-3
 
-
-class FSMState(object):
-
-    OneStep = 0
-    ZeroStep = 1
+# COMANOID environment model (not distributed outside of the project)
+COMANOID_MODEL = 'comanoid/model/ComanoidStructure.xml'
+COMANOID_MODEL_FOUND = os.path.isfile(COMANOID_MODEL)
 
 
 class WalkingController(pymanoid.Process):
+
+    class State(object):
+
+        OneStep = 0
+        ZeroStep = 1
 
     def __init__(self, pendulum, contact_feed):
         super(WalkingController, self).__init__()
@@ -77,19 +79,14 @@ class WalkingController(pymanoid.Process):
         zero_step.set_contact(target_contact)
         swing_foot = SwingFootTracker(
             contact_feed.last, target_contact, stance.left_foot)
-        if "--ipopt" not in sys.argv and "--lssol" not in sys.argv \
-                and "--no-pre" not in sys.argv:
-            t0 = time()
+        if "--ipopt" not in sys.argv and "--no-pre" not in sys.argv:
             one_step.capture_pb.cps_precompute()
-            dtn = time() - t0
-            pymanoid.info("MPC problems have n = %d steps" % NB_MPC_STEPS)
-            pymanoid.info("Precompute time: %f ms" % (1000. * dtn))
         self.contact_feed = contact_feed
         self.double_support = True
         self.double_support_brake = None
-        self.fsm_state = FSMState.OneStep
         self.initial_double_support = True
         self.one_step = one_step
+        self.state = self.State.OneStep
         self.support_contact = support_contact
         self.support_foot = support_foot
         self.swing_foot = swing_foot
@@ -106,7 +103,7 @@ class WalkingController(pymanoid.Process):
                     pymanoid.info(
                         "FSM: transition to 'One-step capture' with cost %f" %
                         self.one_step.solution.var_cost)
-                self.fsm_state = FSMState.OneStep
+                self.state = self.State.OneStep
                 self.zero_step.set_contact(self.target_contact)
                 return one_step_controls
         except Exception as exn:
@@ -152,7 +149,7 @@ class WalkingController(pymanoid.Process):
                     pymanoid.info(
                         "FSM: transition to 'Zero-step capture' with cost %f" %
                         self.zero_step.solution.var_cost)
-                self.fsm_state = FSMState.ZeroStep
+                self.state = self.State.ZeroStep
                 self.switch_to_next_step()
                 return zero_step_controls
         except Exception as exn:
@@ -171,9 +168,9 @@ class WalkingController(pymanoid.Process):
                 y * SWING_FOOT_IK_WEIGHT + (1 - y) * CONTACT_IK_WEIGHT
         if self.double_support_brake is not None:  # end of contact sequence
             cop, lambda_ = self.double_support_brake.compute_controls()
-        elif self.fsm_state == FSMState.ZeroStep:
+        elif self.state == self.State.ZeroStep:
             cop, lambda_ = self.compute_zero_step_controls()
-        else:  # self.fsm_state == FSMState.OneStep
+        else:  # self.state == self.State.OneStep
             cop, lambda_ = self.compute_one_step_controls()
         # feed back geometric CoM to the pendulum model
         cutoff_freq = 20  # [Hz]
@@ -181,25 +178,6 @@ class WalkingController(pymanoid.Process):
         pendulum.com.set_pos(x * robot.com + (1 - x) * pendulum.com.p)
         pendulum.set_cop(cop)
         pendulum.set_lambda(lambda_)
-        self.process_comp_times()
-
-    def process_comp_times(self):
-        if self.zero_step.comp_time is not None:
-            sim.log_comp_time('ZeroStepController', self.zero_step.comp_time)
-        if self.one_step.comp_time is not None:
-            sim.log_comp_time('OneStepController', self.one_step.comp_time)
-        while self.one_step.capture_pb.solver_times:
-            solver_time = self.one_step.capture_pb.solver_times.pop()
-            sim.log_comp_time('ZSCP one-step (all)', solver_time)
-        while self.zero_step.capture_pb.solver_times:
-            solver_time = self.zero_step.capture_pb.solver_times.pop()
-            sim.log_comp_time('ZSCP zero-step (all)', solver_time)
-        while self.one_step.capture_pb.solver_times_succ:
-            solver_time = self.one_step.capture_pb.solver_times_succ.pop()
-            sim.log_comp_time('ZSCP one-step (succ)', solver_time)
-        while self.zero_step.capture_pb.solver_times_succ:
-            solver_time = self.zero_step.capture_pb.solver_times_succ.pop()
-            sim.log_comp_time('ZSCP zero-step (succ)', solver_time)
 
 
 class PreviewTrajectoryDrawer(pymanoid.Process):
@@ -229,16 +207,32 @@ class PreviewTrajectoryDrawer(pymanoid.Process):
 def print_usage():
     print("Usage: %s [scenario] [--record]" % sys.argv[0])
     print("Scenarios:")
-    print("    --comanoid       COMANOID scenario")
+    if COMANOID_MODEL_FOUND:
+        print("    --comanoid       COMANOID scenario")
     print("    --elliptic       Elliptic stairase scenario")
     print("    --flat           Flat floor scenario")
     print("    --regular        Regular stairase scenario")
     print("Options:")
     print("    --ipopt          Use IPOPT rather than the cps SQP solver")
-    print("    --lssol          Use LSSOL rather than the dedicated LS solver")
-    print("    --no-pre         Disable cps precomputations (uses less memory)")
+    print("    --no-pre         Disable CPS precomputation (uses less memory)")
     print("    --record         Record simulation video")
-    print("    --solve-times    Measure fine-grained ZSCP solver times")
+
+
+def load_comanoid():
+    assert COMANOID_MODEL_FOUND, "COMANOID model not found"
+    sim.load_mesh(COMANOID_MODEL)
+    contact_feed = ContactFeed('comanoid/contacts.json')
+    for (i, contact) in enumerate(contact_feed.contacts):
+        contact.link = robot.right_foot if i % 2 == 0 else robot.left_foot
+        if i < 6:  # stair climbing
+            contact.takeoff_clearance = 0.15 if i < 2 else 0.2
+            contact.takeoff_tangent = (2 * contact.n - contact.t) / sqrt(5)
+    sim.move_camera_to([
+        [0.45414461, -0.37196997,  0.80956224, -7.18046379],
+        [-0.89088689, -0.19832849,  0.40863965, -2.44471264],
+        [0.00855758, -0.90680988, -0.42145298,  2.98527932],
+        [0.,  0.,  0.,  1.]])
+    return contact_feed
 
 
 def load_elliptic_staircase():
@@ -285,25 +279,9 @@ def load_regular_staircase():
     return contact_feed
 
 
-def load_comanoid():
-    sim.load_mesh('comanoid/model/ComanoidStructure.xml')
-    contact_feed = ContactFeed('comanoid/contacts.json')
-    for (i, contact) in enumerate(contact_feed.contacts):
-        contact.link = robot.right_foot if i % 2 == 0 else robot.left_foot
-        if i < 6:  # stair climbing
-            contact.takeoff_clearance = 0.15 if i < 2 else 0.2
-            contact.takeoff_tangent = (2 * contact.n - contact.t) / sqrt(5)
-    sim.move_camera_to([
-        [0.45414461, -0.37196997,  0.80956224, -7.18046379],
-        [-0.89088689, -0.19832849,  0.40863965, -2.44471264],
-        [0.00855758, -0.90680988, -0.42145298,  2.98527932],
-        [0.,  0.,  0.,  1.]])
-    return contact_feed
-
-
 def get_scenario():
     scenario = None
-    if "--comanoid" in sys.argv:
+    if COMANOID_MODEL_FOUND and "--comanoid" in sys.argv:
         scenario = "comanoid"
     elif "--elliptic" in sys.argv:
         scenario = "elliptic"
@@ -313,7 +291,9 @@ def get_scenario():
         scenario = "regular"
     if scenario is None:
         print_usage()
-    options = ["comanoid", "elliptic", "flat", "regular"]
+    options = ["elliptic", "flat", "regular"]
+    if COMANOID_MODEL_FOUND:
+        options = ["comanoid"] + options
     while scenario not in options:
         scenario = raw_input("Which scenario in %s? " % str(options))
     return scenario
@@ -374,11 +354,17 @@ def init_robot_stance(contact_feed, robot):
     return stance
 
 
+def customize_ik(robot):
+    not_upper = set(robot.whole_body) - set(robot.upper_body)
+    min_upper_vel = pymanoid.tasks.MinVelTask(
+        robot, weight=5e-6, exclude_dofs=not_upper)
+    robot.ik.add_task(min_upper_vel)
+
+
 if __name__ == "__main__":
     if "-h" in sys.argv or "--help" in sys.argv:
         print_usage()
         sys.exit()
-    random.seed(42)
     sim = pymanoid.Simulation(dt=3e-2)
     try:  # use HRP4 if available
         from hrp4_description import set_velocity_limits
@@ -387,33 +373,19 @@ if __name__ == "__main__":
     except:  # otherwise use default model
         robot = pymanoid.robots.JVRC1()
     robot.set_transparency(0.2)
-    if __debug__:
-        sim.set_viewer()
+    sim.set_viewer()
     contact_feed = load_scenario()
     stance = init_robot_stance(contact_feed, robot)
-    if __debug__:
-        stance.left_foot.set_color('c')
-        stance.right_foot.set_color('m')
-        stance.left_foot.show()
-        stance.right_foot.show()
-
     pendulum = InvertedPendulum(
         robot.com, robot.comd,
         contact=contact_feed.contacts[0],
-        lambda_min=LAMBDA_MIN,
-        lambda_max=LAMBDA_MAX)
-
-    # setup inverse kinematics
+        lambda_min=LAMBDA_MIN, lambda_max=LAMBDA_MAX)
     robot.setup_ik_for_walking(pendulum.com)
-    not_upper = set(robot.whole_body) - set(robot.upper_body)
-    min_upper_vel = pymanoid.tasks.MinVelTask(
-        robot, weight=5e-6, exclude_dofs=not_upper)
-    robot.ik.add_task(min_upper_vel)
+    customize_ik(robot)
 
     controller = WalkingController(pendulum, contact_feed)
     com_traj_drawer = TrajectoryDrawer(pendulum.com)
     preview_traj_drawer = PreviewTrajectoryDrawer(controller)
-
     sim.schedule(controller, log_comp_times=True)
     sim.schedule(pendulum)
     sim.schedule(robot.ik)
@@ -424,21 +396,6 @@ if __name__ == "__main__":
     if "--ipopt" in sys.argv:
         controller.one_step.capture_pb.set_nlp_solver("ipopt")
         controller.zero_step.capture_pb.set_nlp_solver("ipopt")
-
-    if "--lssol" in sys.argv:
-        controller.one_step.capture_pb.set_cps_ls_solver("lssol")
-        controller.zero_step.capture_pb.set_cps_ls_solver("lssol")
-
-    if "--record" in sys.argv:
-        sleep(1e-4)  # so that it's already imported
-        pendulum.hide()
-        stance.left_foot.hide()
-        stance.right_foot.hide()
-        sim.record()
-
-    if "--solver-times" in sys.argv:
-        controller.one_step.capture_pb.record_solver_times = True
-        controller.zero_step.capture_pb.record_solver_times = True
 
     if IPython.get_ipython() is None:
         IPython.embed()

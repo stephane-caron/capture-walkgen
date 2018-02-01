@@ -19,14 +19,15 @@
 # You should have received a copy of the GNU Lesser General Public License along
 # with capture-walking. If not, see <http://www.gnu.org/licenses/>.
 
-from numpy import arange, arctan, array, cos, cross, dot, sin, tan, vstack
+from numpy import arange, arctan, array, cos, cross, dot, sin, sqrt, tan, vstack
 from pymanoid.body import Point
 from pymanoid.gui import draw_point, draw_trajectory
 from pymanoid.misc import normalize, warn
 from pymanoid.models import InvertedPendulum
 from time import time
 
-from .capture import CaptureController
+from .capture_problem import CaptureProblem
+from .interval import find_interval_bounds
 
 
 class MockFrame(object):
@@ -46,7 +47,7 @@ class MockFrame(object):
         self.theta = theta
 
 
-class ZeroStepController(CaptureController):
+class ZeroStepController(object):
 
     """
     Balance controller based on predictive control with boundedness condition.
@@ -71,13 +72,18 @@ class ZeroStepController(CaptureController):
 
     def __init__(self, pendulum, nb_steps, target_height, cop_gain):
         assert cop_gain > 1.05, "CoP gain has to be strictly > 1"
-        super(ZeroStepController, self).__init__(
-            pendulum, nb_steps, target_height)
+        self.capture_pb = CaptureProblem(
+            pendulum.lambda_min, pendulum.lambda_max, nb_steps)
         self.comp_time = None
         self.contact = pendulum.contact
         self.cop_gain = cop_gain
         self.frame = MockFrame()  # local frame
         self.local_state = Point([0., 0., 0.], visible=False)  # in local frame
+        self.pendulum = pendulum
+        self.solution = None
+        self.sqrt_lambda_max = sqrt(pendulum.lambda_max)
+        self.sqrt_lambda_min = sqrt(pendulum.lambda_min)
+        self.target_height = target_height
         self.world_state = pendulum.com.copy(visible=False)
 
     def set_contact(self, contact):
@@ -132,7 +138,10 @@ class ZeroStepController(CaptureController):
         u = b / self.cop_gain - dot(A, self.local_state.p[:2])
         v = dot(A, self.local_state.pd[:2])
         # Property: u * omega_i >= v
-        init_omega_min, init_omega_max = self.wrap_omega_lim(u, v)
+        init_omega_min, init_omega_max = find_interval_bounds(
+            u, v, self.sqrt_lambda_min, self.sqrt_lambda_max)
+        if init_omega_min is None:
+            raise RuntimeError("no feasible CoP")
         x, y, z = self.local_state.p
         xd, yd, zd = self.local_state.pd
         zbar = z - tan(self.frame.phi) * x - tan(self.frame.theta) * y

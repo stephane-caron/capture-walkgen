@@ -21,20 +21,20 @@
 
 import pymanoid
 
-from numpy import array, cross, dot, hstack, linspace
+from numpy import array, cross, dot, hstack, linspace, sqrt
 from pymanoid.gui import draw_trajectory
 from pymanoid.misc import AvgStdEstimator
 from pymanoid.models import InvertedPendulum
 from time import time
 
-from .capture import CaptureController
-from .utils import find_interval_bounds
+from .capture_problem import CaptureProblem
+from .interval import find_interval_bounds
 
 
 e_z = array([0., 0., 1.])
 
 
-class OneStepController(CaptureController):
+class OneStepController(object):
 
     """
     Stepping controller based on predictive control with boundedness condition.
@@ -50,13 +50,18 @@ class OneStepController(CaptureController):
     """
 
     def __init__(self, pendulum, nb_steps, target_height):
-        super(OneStepController, self).__init__(
-            pendulum, nb_steps, target_height)
+        self.capture_pb = CaptureProblem(
+            pendulum.lambda_min, pendulum.lambda_max, nb_steps)
         self.com = pendulum.com.copy(visible=False)
         self.comp_time = None
         self.nb_alphas = AvgStdEstimator()
+        self.pendulum = pendulum
+        self.solution = None
+        self.sqrt_lambda_max = sqrt(pendulum.lambda_max)
+        self.sqrt_lambda_min = sqrt(pendulum.lambda_min)
         self.support_contact = None
         self.target_contact = None
+        self.target_height = target_height
         self.verbose = False
 
     def set_contacts(self, support_contact, target_contact):
@@ -148,7 +153,10 @@ class OneStepController(CaptureController):
         u = (1. - alpha) * self.p_area + dot(
             self.F_area, alpha * self.target_contact.p - self.com.p)
         v = dot(self.F_area, self.com.pd)
-        omega_i_min, omega_i_max = self.wrap_omega_lim(u, v)
+        init_omega_min, init_omega_max = find_interval_bounds(
+            u, v, self.sqrt_lambda_min, self.sqrt_lambda_max)
+        if init_omega_min is None:
+            raise RuntimeError("no feasible CoP")
         r_alpha = alpha * self.target_contact.p \
             + (1. - alpha) * self.support_contact.p
         zbar = dot(self.com.p - r_alpha, self.support_contact.n)
@@ -157,7 +165,7 @@ class OneStepController(CaptureController):
         init_zbar_deriv /= self.support_contact.n[2]
         self.capture_pb.init_zbar = zbar
         self.capture_pb.init_zbar_deriv = init_zbar_deriv
-        self.capture_pb.set_init_omega_lim(omega_i_min, omega_i_max)
+        self.capture_pb.set_init_omega_lim(init_omega_min, init_omega_max)
         self.capture_pb.target_height = self.target_height
 
     def pick_solution(self, alpha_intervals, time_to_heel_strike=None):

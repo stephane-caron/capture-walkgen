@@ -73,11 +73,4 @@ class DoubleSupportController(object):
         omega = 2 * (sqrt(gravity_const * delta_z + v ** 2) - v) / delta_z
         lambda_ = omega ** 2
         cop = com + delta_com * k ** 2 + k * comd / omega + gravity / lambda_
-        if __debug__:
-            root_check = \
-                dot(com - self.foot_center + k ** 2 * delta_com, self.n) \
-                + k * dot(self.pendulum.com.pd, self.n) / sqrt(lambda_) \
-                + dot(gravity, self.n) / lambda_
-            assert abs(root_check) < 1e-10
-            assert abs(dot(cop - self.foot_center, self.n)) < 1e-10
         return cop, lambda_
