@@ -29,13 +29,12 @@ from pymanoid.sim import gravity_const
 from .capture_solution import CaptureSolution
 
 
-DEFAULT_NLP_SOLVER = "ipopt"
-
 try:
     import CaptureProblemSolver as cps
     DEFAULT_NLP_SOLVER = "cps"
 except ImportError:
     pymanoid.warn("Could not import CaptureProblemSolver")
+    DEFAULT_NLP_SOLVER = "ipopt"
     cps = None
 
 

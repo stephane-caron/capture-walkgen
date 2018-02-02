@@ -33,7 +33,6 @@ except:  # avoid warning E402 from Pylint :p
 from numpy import dot, sqrt
 from pymanoid import PointMass, Stance
 from pymanoid.contact import ContactFeed
-from pymanoid.gui import draw_line, draw_point
 from pymanoid.gui import TrajectoryDrawer
 from pymanoid.models import InvertedPendulum
 from pymanoid.sim import gravity_const
@@ -79,7 +78,7 @@ class WalkingController(pymanoid.Process):
         zero_step.set_contact(target_contact)
         swing_foot = SwingFootTracker(
             contact_feed.last, target_contact, stance.left_foot)
-        if "--ipopt" not in sys.argv and "--no-pre" not in sys.argv:
+        if "--ipopt" not in sys.argv:
             one_step.capture_pb.cps_precompute()
         self.contact_feed = contact_feed
         self.double_support = True
@@ -192,30 +191,20 @@ class PreviewTrajectoryDrawer(pymanoid.Process):
         new_handles = []
         if self.one_step.solution is not None:
             new_handles.extend(self.one_step.draw_solution('r'))
-        if "--record" not in sys.argv:
-            if self.zero_step.solution is not None:
-                new_handles.extend(self.zero_step.draw_solution('g'))
-            new_handles.append(draw_line(
-                pendulum.com.p, pendulum.com.p + 1.0 * pendulum.com.pd,
-                linewidth=2, color='m'))
-            target = self.one_step.target_contact.p \
-                + [0., 0., TARGET_COM_HEIGHT]
-            new_handles.append(draw_point(target, color='b', pointsize=0.01))
         self.handles = new_handles
 
 
 def print_usage():
-    print("Usage: %s [scenario] [--record]" % sys.argv[0])
+    print("Usage: %s [scenario] [solver]" % sys.argv[0])
     print("Scenarios:")
     if COMANOID_MODEL_FOUND:
         print("    --comanoid       COMANOID scenario")
     print("    --elliptic       Elliptic stairase scenario")
     print("    --flat           Flat floor scenario")
     print("    --regular        Regular stairase scenario")
-    print("Options:")
-    print("    --ipopt          Use IPOPT rather than the cps SQP solver")
-    print("    --no-pre         Disable CPS precomputation (uses less memory)")
-    print("    --record         Record simulation video")
+    print("Solvers:")
+    print("    --cps            Use CaptureProblemSolver (default)")
+    print("    --ipopt          Use IPOPT")
 
 
 def load_comanoid():
@@ -355,10 +344,10 @@ def init_robot_stance(contact_feed, robot):
 
 
 def customize_ik(robot):
-    not_upper = set(robot.whole_body) - set(robot.upper_body)
-    min_upper_vel = pymanoid.tasks.MinVelTask(
-        robot, weight=5e-6, exclude_dofs=not_upper)
-    robot.ik.add_task(min_upper_vel)
+    not_upper_body = set(robot.whole_body) - set(robot.upper_body)
+    upper_body_task = pymanoid.tasks.MinVelTask(
+        robot, weight=5e-6, exclude_dofs=not_upper_body)
+    robot.ik.add(upper_body_task)
 
 
 if __name__ == "__main__":
