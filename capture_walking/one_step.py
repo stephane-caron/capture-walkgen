@@ -25,13 +25,11 @@ from numpy import array, cross, dot, hstack, linspace, sqrt
 from pymanoid.gui import draw_trajectory
 from pymanoid.misc import AvgStdEstimator
 from pymanoid.models import InvertedPendulum
+from pymanoid.sim import e_z
 from time import time
 
 from .capture_problem import CaptureProblem
 from .interval import find_interval_bounds
-
-
-e_z = array([0., 0., 1.])
 
 
 class OneStepController(object):

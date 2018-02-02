@@ -59,6 +59,8 @@ class CaptureSolution(object):
     switch_times : list
         List of switch times for the piecewise-constant solution. Filled by
         calling :func:`compute_switch_times`.
+    var_cost : scalar
+        L2 cost in stiffness variations.
     """
 
     def __init__(self, phi_1_n, capture_pb, optimal_found=None):
@@ -76,16 +78,10 @@ class CaptureSolution(object):
         self.s = capture_pb.s
         self.switch_times = None
 
-    def __str__(self):
-        """
-        Print in palatable format for CaptureProblemSolver.
-        """
-        return "phi = %s;" % str(list(self.phi))
-
     @property
     def var_cost(self):
         """
-        Compute an L2 cost in lambda variations.
+        Compute an L2 cost in stiffness variations.
         """
         return sum(
             (self.lambda_[i + 1] - self.lambda_[i])**2
@@ -93,7 +89,7 @@ class CaptureSolution(object):
 
     def compute_lambda(self):
         """
-        Compute the full vector of lambda values.
+        Compute the full vector of stiffness values.
         """
         delta, phi, n = self.delta, self.phi, self.nb_steps
         lambda_ = [(phi[i + 1] - phi[i]) / delta[i] for i in xrange(n)]

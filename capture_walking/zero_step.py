@@ -24,6 +24,7 @@ from pymanoid.body import Point
 from pymanoid.gui import draw_point, draw_trajectory
 from pymanoid.misc import normalize, warn
 from pymanoid.models import InvertedPendulum
+from pymanoid.sim import e_z
 from time import time
 
 from .capture_problem import CaptureProblem
@@ -105,7 +106,6 @@ class ZeroStepController(object):
         self.world_state.set_pos(self.pendulum.com.p)
         self.world_state.set_vel(self.pendulum.com.pd)
         delta = self.world_state.p - self.contact.p
-        e_z = array([0., 0., 1.])
         e_x = -normalize(delta - dot(delta, e_z) * e_z)
         e_y = cross(e_z, e_x)
         R = vstack([e_x, e_y, e_z])  # from world to local frame

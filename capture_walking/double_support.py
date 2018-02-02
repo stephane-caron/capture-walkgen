@@ -21,15 +21,15 @@
 
 from numpy import dot, sqrt
 from pymanoid.misc import normalize
-from pymanoid.sim import gravity, gravity_const
+from pymanoid.sim import e_z, gravity, gravity_const
 
 
 class DoubleSupportController(object):
 
     """
     Simple controller used to stop in double support after walking. Implements
-    the "reflex" control law used to prove small-space controllability of the
-    IPM in the paper.
+    the control law used to prove small-space controllability of the IPM in an
+    Appendix of the paper.
 
     Parameters
     ----------
@@ -60,9 +60,32 @@ class DoubleSupportController(object):
         self.pendulum = pendulum
 
     def bar(self, p):
-        return dot(p, self.n) / dot([0, 0, 1], self.n)
+        """
+        Height coordinate for a given point.
+
+        Parameters
+        ----------
+        p : array
+            World coordinates.
+
+        Returns
+        -------
+        h : scalar
+            Height of `p`.
+        """
+        return dot(p, self.n) / dot(e_z, self.n)
 
     def compute_controls(self):
+        """
+        Compute controls from current state.
+
+        Returns
+        -------
+        cop : array
+            World coordinates of the center of pressure.
+        lambda_ : scalar
+            Stiffness for the inverted pendulum.
+        """
         k = self.k
         com = self.pendulum.com.p
         comd = self.pendulum.com.pd

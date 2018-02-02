@@ -75,7 +75,7 @@ class WalkingController(pymanoid.Process):
         swing_foot = SwingFootTracker(
             contact_feed.last, target_contact, stance.left_foot)
         if "--ipopt" not in sys.argv:
-            one_step.capture_pb.cps_precompute()
+            one_step.capture_pb.precompute()
         self.contact_feed = contact_feed
         self.double_support = True
         self.double_support_brake = None
@@ -354,8 +354,8 @@ if __name__ == "__main__":
     sim.step()
 
     if "--ipopt" in sys.argv:
-        controller.one_step.capture_pb.set_nlp_solver("ipopt")
-        controller.zero_step.capture_pb.set_nlp_solver("ipopt")
+        controller.one_step.capture_pb.nlp_solver = "ipopt"
+        controller.zero_step.capture_pb.nlp_solver = "ipopt"
 
     if IPython.get_ipython() is None:
         IPython.embed()

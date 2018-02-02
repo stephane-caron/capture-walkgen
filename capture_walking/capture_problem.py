@@ -123,26 +123,13 @@ class CaptureProblem(object):
         s += "target_height = %.32f;" % self.target_height
         return s
 
-    def cps_precompute(self):
+    def precompute(self):
         """
         Precompute QR decompositions for all nullspace-projected Jacobians used
         by the least squares sub-solver of cps.
         """
         assert self.nlp_solver == "cps"
         self.cps_pb.precompute()
-
-    def set_nlp_solver(self, solver_name):
-        """
-        Change the nonlinear solver.
-
-        Parameters
-        ----------
-        solver_name : string
-            Solver name between "cps" (tailored optimization) and "ipopt"
-            (generic nonlinear programming).
-        """
-        assert solver_name in ["cps", "ipopt"]
-        self.nlp_solver = solver_name
 
     def set_init_omega_lim(self, init_omega_min, init_omega_max):
         """
