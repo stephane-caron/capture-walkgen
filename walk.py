@@ -107,6 +107,26 @@ class WalkingController(pymanoid.Process):
                     "FSM: one-step transition not ready: %s" % str(exn))
         return zero_step_controls
 
+    def compute_one_step_controls(self):
+        one_step_controls = self.one_step.compute_controls(
+            self.swing_foot.time_to_heel_strike)
+        try:
+            zero_step_controls = self.zero_step.compute_controls()
+            self.zero_step.solution.compute_lambda()
+            if self.zero_step.solution.var_cost < 1.:
+                if self.verbose:
+                    pymanoid.info(
+                        "FSM: transition to 'Zero-step capture' with cost %f" %
+                        self.zero_step.solution.var_cost)
+                self.state = self.State.ZeroStep
+                self.switch_to_next_step()
+                return zero_step_controls
+        except Exception as exn:
+            if self.verbose:
+                pymanoid.info(
+                    "FSM: zero-step transition not ready: %s" % str(exn))
+        return one_step_controls
+
     def switch_to_next_step(self):
         prev_contact = self.support_contact
         support_contact = self.target_contact
@@ -132,26 +152,6 @@ class WalkingController(pymanoid.Process):
         self.swing_foot.reset(prev_contact, target_contact, swing_foot_target)
         self.swing_foot_task = swing_foot_task
         self.target_contact = target_contact
-
-    def compute_one_step_controls(self):
-        one_step_controls = self.one_step.compute_controls(
-            self.swing_foot.time_to_heel_strike)
-        try:
-            zero_step_controls = self.zero_step.compute_controls()
-            self.zero_step.solution.compute_lambda()
-            if self.zero_step.solution.var_cost < 1.:
-                if self.verbose:
-                    pymanoid.info(
-                        "FSM: transition to 'Zero-step capture' with cost %f" %
-                        self.zero_step.solution.var_cost)
-                self.state = self.State.ZeroStep
-                self.switch_to_next_step()
-                return zero_step_controls
-        except Exception as exn:
-            if self.verbose:
-                pymanoid.info(
-                    "FSM: zero-step transition not ready: %s" % str(exn))
-        return one_step_controls
 
     def on_tick(self, sim):
         if not self.double_support:
