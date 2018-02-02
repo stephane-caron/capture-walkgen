@@ -107,22 +107,6 @@ class CaptureProblem(object):
         self.s_sq = s_sq
         self.target_height = None
 
-    def __str__(self):
-        """
-        Print problem in palatable format for CaptureProblemSolver.
-        """
-        s = "delta = %s;\n" % str(list(self.delta))
-        s += "g = %.32f;\n" % gravity_const
-        s += "init_omega_max = %.32f;\n" % self.init_omega_max
-        s += "init_omega_min = %.32f;\n" % self.init_omega_min
-        s += "init_zbar = %.32f;\n" % self.init_zbar
-        s += "init_zbar_deriv = %.32f;\n" % self.init_zbar_deriv
-        s += "lambda_max = %.32f;\n" % self.lambda_max
-        s += "lambda_min = %.32f;\n" % self.lambda_min
-        s += "s = %s;\n" % str(list(self.s))
-        s += "target_height = %.32f;" % self.target_height
-        return s
-
     def precompute(self):
         """
         Precompute QR decompositions for all nullspace-projected Jacobians used

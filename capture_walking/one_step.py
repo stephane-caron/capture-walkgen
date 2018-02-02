@@ -23,10 +23,8 @@ import pymanoid
 
 from numpy import array, cross, dot, hstack, linspace, sqrt
 from pymanoid.gui import draw_trajectory
-from pymanoid.misc import AvgStdEstimator
 from pymanoid.models import InvertedPendulum
 from pymanoid.sim import e_z
-from time import time
 
 from .capture_problem import CaptureProblem
 from .interval import find_interval_bounds
@@ -45,22 +43,36 @@ class OneStepController(object):
         Number of discretization steps for the preview trajectory.
     target_height : scalar
         Desired altitude at the end of the step.
+
+    Attributes
+    ----------
+    capture_pb : capture_walking.CaptureProblem
+        Underlying capture problem.
+    com : pymanoid.Point
+        Center of mass state (position and velocity).
+    pendulum : pymanoid.InvertedPendulum
+        Inverted pendulum model.
+    solution : capture_walking.CaptureSolution
+        Solution to last capture problem solved.
+    support_contact : pymanoid.Contact
+        Current support contact.
+    target_contact : pymanoid.Contact
+        Desired next footstep location.
+    target_height : scalar
+        Target CoM height at end of step.
     """
 
     def __init__(self, pendulum, nb_steps, target_height):
+        self.__sqrt_lambda_max = sqrt(pendulum.lambda_max)
+        self.__sqrt_lambda_min = sqrt(pendulum.lambda_min)
         self.capture_pb = CaptureProblem(
             pendulum.lambda_min, pendulum.lambda_max, nb_steps)
         self.com = pendulum.com.copy(visible=False)
-        self.comp_time = None
-        self.nb_alphas = AvgStdEstimator()
         self.pendulum = pendulum
         self.solution = None
-        self.sqrt_lambda_max = sqrt(pendulum.lambda_max)
-        self.sqrt_lambda_min = sqrt(pendulum.lambda_min)
         self.support_contact = None
         self.target_contact = None
         self.target_height = target_height
-        self.verbose = False
 
     def set_contacts(self, support_contact, target_contact):
         """
@@ -110,7 +122,7 @@ class OneStepController(object):
         # extend (u, v, w) with sqrt(lambda_min) < omega_i < sqrt(lambda_max)
         u = hstack([u, [+1., -1.]])
         v = hstack([v, [0., 0.]])
-        w = hstack([w, [+self.sqrt_lambda_min, -self.sqrt_lambda_max]])
+        w = hstack([w, [+self.__sqrt_lambda_min, -self.__sqrt_lambda_max]])
 
         row_ids = set(range(len(u)))
         roots = [u[i] / v[i] for i in row_ids if abs(u[i]) < abs(v[i])]
@@ -152,7 +164,7 @@ class OneStepController(object):
             self.F_area, alpha * self.target_contact.p - self.com.p)
         v = dot(self.F_area, self.com.pd)
         init_omega_min, init_omega_max = find_interval_bounds(
-            u, v, self.sqrt_lambda_min, self.sqrt_lambda_max)
+            u, v, self.__sqrt_lambda_min, self.__sqrt_lambda_max)
         if init_omega_min is None:
             raise RuntimeError("no feasible CoP")
         r_alpha = alpha * self.target_contact.p \
@@ -172,8 +184,6 @@ class OneStepController(object):
         best_solution = None
         for (alpha_min, alpha_max) in alpha_intervals:
             for alpha in linspace(alpha_max, alpha_min, 5):
-                if self.verbose:
-                    print "\talpha =", alpha
                 try:
                     self.update_capture_problem(alpha)
                 except RuntimeError as e:
@@ -189,22 +199,12 @@ class OneStepController(object):
                     phi_switch = (alpha * solution.omega_i)**2
                     s_switch = solution.s_from_phi(phi_switch)
                     t_switch = solution.t_from_s(s_switch)
-                    if self.verbose:
-                        print "\t\tt_switch =", t_switch
-                        print "\t\ttime_to_heel_strike =", time_to_heel_strike
                     time_cost = max(0., time_to_heel_strike - t_switch)
                 total_cost = 1000 * time_cost + solution.var_cost
-                if self.verbose:
-                    print "\t\tvar_cost =", solution.var_cost
-                    print "\t\ttime_cost =", time_cost
-                    print "\t\ttotal_cost =", total_cost
                 if total_cost < best_cost:
                     best_alpha = alpha
                     best_cost = total_cost
                     best_solution = solution
-                    if self.verbose:
-                        print "\t\t* * * cost lowered to", best_cost
-        self.nb_alphas.add(5 * len(alpha_intervals))
         self.update_capture_problem(best_alpha)
         self.alpha = best_alpha
         self.solution = best_solution
@@ -220,21 +220,16 @@ class OneStepController(object):
         push : scalar
             Leg stiffness :math:`\\lambda \\geq 0`.
         """
-        self.comp_time = None
         self.solution = None
         self.com.set_pos(self.pendulum.com.p)
         self.com.set_vel(self.pendulum.com.pd)
-        start_time = time()
         alpha_intervals = self.compute_alpha_intervals()
-        if self.verbose:
-            print "alpha_intervals =", alpha_intervals
         self.pick_solution(alpha_intervals, time_to_heel_strike)
         alpha, omega_i = self.alpha, self.solution.omega_i
         pos_proj = self.com.p - e_z * self.capture_pb.init_zbar
         vel_proj = self.com.pd - e_z * self.capture_pb.init_zbar_deriv
         r_f = self.target_contact.p
         r_i = (pos_proj + vel_proj / omega_i - alpha * r_f) / (1. - alpha)
-        self.comp_time = time() - start_time
         self.solution.r_f = r_f
         self.solution.r_i = r_i
         return r_i, self.solution.lambda_i

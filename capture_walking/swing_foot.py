@@ -78,29 +78,6 @@ def factor_cubic_hermite_curve(p0, n0, p1, n1):
     return H_lambda, H_mu, H_cst
 
 
-def __check_factor_cubic_hermite_curve():
-    from sympy import Symbol
-    mu = Symbol('mu')
-    ld = Symbol('lambda')
-    n0 = Symbol('n0')
-    n1 = Symbol('n1')
-    p0 = Symbol('p0')
-    p1 = Symbol('p1')
-    s = Symbol('s')
-    H = (mu * n1 + ld * n0 - 2 * p1 + 2 * p0) * s ** 3 + \
-        (3 * p1 - 3 * p0 - 2 * ld * n0 - mu * n1) * s ** 2 + \
-        ld * n0 * s + p0
-    Hd = H.diff(s)
-    H_mu = s * s * (s - 1) * n1
-    H_lambda = s * (1 + s * (s - 2)) * n0
-    H_cst = p0 + s * s * (3 - 2 * s) * (p1 - p0)
-    print "H(0) =", H.subs(s, 0)
-    print "Hd(0) =", Hd.subs(s, 0)
-    print "H(1) =", H.subs(s, 1)
-    print "Hd(1) =", Hd.subs(s, 1)
-    print "CHECK:", (H - H_mu * mu - H_lambda * ld - H_cst).simplify()
-
-
 class SwingFootTracker(pymanoid.Process):
 
     """
@@ -133,6 +110,18 @@ class SwingFootTracker(pymanoid.Process):
         self.traj_points = None
 
     def reset(self, start_contact, end_contact, foot_target):
+        """
+        Reset for a new pair of contacts.
+
+        Parameters
+        ----------
+        start_contact : pymanoid.Contact
+            Initial contact.
+        end_contact : pymanoid.Contact
+            Target contact.
+        foot_target : pymanoid.Body
+            IK target to be updated during swing foot motion.
+        """
         self.start_contact = start_contact
         self.end_contact = end_contact
         self.foot_target = foot_target
@@ -140,6 +129,9 @@ class SwingFootTracker(pymanoid.Process):
         self.interpolate()
 
     def interpolate_hermite(self):
+        """
+        Interpolate optimized Hermite curve between the two contacts.
+        """
         n0 = self.start_contact.n
         n1 = self.end_contact.n
         p0 = self.start_contact.p
@@ -178,6 +170,9 @@ class SwingFootTracker(pymanoid.Process):
         self.path = toppra.PolynomialInterpolator(array(poly.coeffs).T)
 
     def retime(self):
+        """
+        Retime interpolated Hermite curve using TOPP-RA.
+        """
         ss = linspace(0, 1, self.nb_steps + 1)
         a_lim = vstack((-self.max_accel, self.max_accel)).T
         pc_acc = toppra.create_acceleration_path_constraint(
@@ -193,6 +188,9 @@ class SwingFootTracker(pymanoid.Process):
         return t, q
 
     def interpolate(self):
+        """
+        Interpolate complete swing foot trajectory.
+        """
         self.duration = None
         self.traj_len = None
         self.traj_points = None
@@ -206,15 +204,24 @@ class SwingFootTracker(pymanoid.Process):
 
     @property
     def progression(self):
+        """
+        Progression index between zero and one.
+        """
         return min(1., 1.1 * self.playback_time / self.duration)
 
     @property
     def time_to_heel_strike(self):
+        """
+        Time until the swing foot touches down the target contact.
+        """
         if self.duration is None:
             return None
         return max(0., self.duration - self.playback_time)
 
     def draw(self, details=False):
+        """
+        Draw swing foot trajectory.
+        """
         new_handles = []
         if details:  # draw control points
             H0, H1 = self._H(1. / 4), self._H(3. / 4)
@@ -233,6 +240,14 @@ class SwingFootTracker(pymanoid.Process):
         self.handles += new_handles
 
     def on_tick(self, sim):
+        """
+        Main function called at each control cycle.
+
+        Parameters
+        ----------
+        sim : Simulation
+            Current simulation instance.
+        """
         self.playback_time += sim.dt
         i = min(int(self.playback_time / self.dt) + 1, self.traj_len - 1)
         s = min(1., 1.1 * self.playback_time / self.duration)
