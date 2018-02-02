@@ -130,7 +130,7 @@ class WalkingController(pymanoid.Process):
         if target_contact is None:  # end of contact sequence
             self.double_support = True
             self.double_support_brake = DoubleSupportController(
-                pendulum, stance, self.target_height)
+                pendulum, stance, TARGET_COM_HEIGHT)
             pendulum.check_cop = False
             return
         if 'ight' in self.swing_foot.foot_target.name:
@@ -260,7 +260,7 @@ def get_scenario():
     return scenario
 
 
-def terminate_in_double_support(contact_feed):
+def tweak_acyclic_contact_feed(contact_feed):
     """
     Duplicate last two contacts so that the robot terminates in double support
     at the end of a non-cylic contact feed.
@@ -292,7 +292,7 @@ def load_scenario():
     else:  # scenario == "elliptic"
         contact_feed = load_elliptic_staircase()
     if not contact_feed.cyclic:
-        terminate_in_double_support(contact_feed)
+        tweak_acyclic_contact_feed(contact_feed)
     return contact_feed
 
 
@@ -313,7 +313,8 @@ def init_robot_stance(contact_feed, robot):
     return stance
 
 
-def customize_ik(robot):
+def setup_robot_ik(robot, pendulum):
+    robot.setup_ik_for_walking(pendulum.com)
     not_upper_body = set(robot.whole_body) - set(robot.upper_body)
     upper_body_task = pymanoid.tasks.MinVelTask(
         robot, weight=5e-6, exclude_dofs=not_upper_body)
@@ -339,8 +340,7 @@ if __name__ == "__main__":
         robot.com, robot.comd,
         contact=contact_feed.contacts[0],
         lambda_min=LAMBDA_MIN, lambda_max=LAMBDA_MAX)
-    robot.setup_ik_for_walking(pendulum.com)
-    customize_ik(robot)
+    setup_robot_ik(robot, pendulum)
 
     controller = WalkingController(pendulum, contact_feed)
     com_traj_drawer = TrajectoryDrawer(pendulum.com)
