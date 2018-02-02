@@ -53,10 +53,6 @@ TARGET_COM_HEIGHT = 0.8
 CONTACT_IK_WEIGHT = 1.
 SWING_FOOT_IK_WEIGHT = 1e-3
 
-# COMANOID environment model (not distributed outside of the project)
-COMANOID_MODEL = 'comanoid/model/ComanoidStructure.xml'
-COMANOID_MODEL_FOUND = os.path.isfile(COMANOID_MODEL)
-
 
 class WalkingController(pymanoid.Process):
 
@@ -197,31 +193,12 @@ class PreviewTrajectoryDrawer(pymanoid.Process):
 def print_usage():
     print("Usage: %s [scenario] [solver]" % sys.argv[0])
     print("Scenarios:")
-    if COMANOID_MODEL_FOUND:
-        print("    --comanoid       COMANOID scenario")
     print("    --elliptic       Elliptic stairase scenario")
     print("    --flat           Flat floor scenario")
     print("    --regular        Regular stairase scenario")
     print("Solvers:")
     print("    --cps            Use CaptureProblemSolver (default)")
     print("    --ipopt          Use IPOPT")
-
-
-def load_comanoid():
-    assert COMANOID_MODEL_FOUND, "COMANOID model not found"
-    sim.load_mesh(COMANOID_MODEL)
-    contact_feed = ContactFeed('comanoid/contacts.json')
-    for (i, contact) in enumerate(contact_feed.contacts):
-        contact.link = robot.right_foot if i % 2 == 0 else robot.left_foot
-        if i < 6:  # stair climbing
-            contact.takeoff_clearance = 0.15 if i < 2 else 0.2
-            contact.takeoff_tangent = (2 * contact.n - contact.t) / sqrt(5)
-    sim.move_camera_to([
-        [0.45414461, -0.37196997,  0.80956224, -7.18046379],
-        [-0.89088689, -0.19832849,  0.40863965, -2.44471264],
-        [0.00855758, -0.90680988, -0.42145298,  2.98527932],
-        [0.,  0.,  0.,  1.]])
-    return contact_feed
 
 
 def load_elliptic_staircase():
@@ -270,9 +247,7 @@ def load_regular_staircase():
 
 def get_scenario():
     scenario = None
-    if COMANOID_MODEL_FOUND and "--comanoid" in sys.argv:
-        scenario = "comanoid"
-    elif "--elliptic" in sys.argv:
+    if "--elliptic" in sys.argv:
         scenario = "elliptic"
     elif "--flat" in sys.argv:
         scenario = "flat"
@@ -281,8 +256,6 @@ def get_scenario():
     if scenario is None:
         print_usage()
     options = ["elliptic", "flat", "regular"]
-    if COMANOID_MODEL_FOUND:
-        options = ["comanoid"] + options
     while scenario not in options:
         scenario = raw_input("Which scenario in %s? " % str(options))
     return scenario
@@ -313,9 +286,7 @@ def terminate_in_double_support(contact_feed):
 
 def load_scenario():
     scenario = get_scenario()
-    if scenario == "comanoid":
-        contact_feed = load_comanoid()
-    elif scenario == "regular":
+    if scenario == "regular":
         contact_feed = load_regular_staircase()
     elif scenario == "flat":
         contact_feed = load_flat_floor_staircase()
