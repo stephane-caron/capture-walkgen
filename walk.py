@@ -52,7 +52,49 @@ TARGET_COM_HEIGHT = 0.8
 
 class WalkingController(pymanoid.Process):
 
+    """
+    Main walking controller.
+
+    Parameters
+    ----------
+    pendulum : pymanoid.InvertedPendulum
+        Inverted pendulum model.
+    contact_feed : pymanoid.ContactFeed
+        Footstep sequence of the walking scenario.
+
+    Attributes
+    ----------
+    contact_feed : pymanoid.ContactFeed
+        Footstep sequence of the walking scenario.
+    double_support : bool
+        Is the robot currently in double support?
+    double_support_brake : capture_walking.DoubleSupportController
+        Double-support controller used at the end of the walking pattern.
+    initial_double_support : bool
+        Is the robot currently in its initial double-support stance?
+    one_step : capture_walking.OneStepController
+        One-step capture problem solver.
+    state : State
+        Current FSM state.
+    support_contact : pymanoid.Contact
+        Current support contact.
+    support_foot : pymanoid.Manipulator
+        Current support foot of the robot.
+    swing_foot : pymanoid.Manipulator
+        Current swing foot of the robot.
+    target_contact : pymanoid.Contact
+        Desired next footstep location.
+    verbose : bool
+        Set to True to flood your stdout.
+    zero_step : capture_walking.ZeroStepController
+        Zero-step capture problem solver.
+    """
+
     class State(object):
+
+        """
+        State labels for the finite state machine.
+        """
 
         OneStep = 0
         ZeroStep = 1
@@ -86,6 +128,9 @@ class WalkingController(pymanoid.Process):
         self.zero_step = zero_step
 
     def compute_zero_step_controls(self):
+        """
+        Run the zero-step capture state of the FSM.
+        """
         zero_step_controls = self.zero_step.compute_controls()
         try:
             one_step_controls = self.one_step.compute_controls()
@@ -104,6 +149,9 @@ class WalkingController(pymanoid.Process):
         return zero_step_controls
 
     def compute_one_step_controls(self):
+        """
+        Run the one-step capture state of the FSM.
+        """
         one_step_controls = self.one_step.compute_controls(
             self.swing_foot.time_to_heel_strike)
         try:
@@ -124,6 +172,10 @@ class WalkingController(pymanoid.Process):
         return one_step_controls
 
     def switch_to_next_step(self):
+        """
+        Switch to next footstep after a successful one-step to zero-step
+        transition of the FSM.
+        """
         prev_contact = self.support_contact
         support_contact = self.target_contact
         target_contact = self.contact_feed.pop()
@@ -151,6 +203,14 @@ class WalkingController(pymanoid.Process):
         self.target_contact = target_contact
 
     def on_tick(self, sim):
+        """
+        Main function called at each control cycle.
+
+        Parameters
+        ----------
+        sim : Simulation
+            Current simulation instance.
+        """
         if not self.double_support:
             self.swing_foot.on_tick(sim)
             # relax foot task weight during swinging
@@ -174,15 +234,27 @@ class WalkingController(pymanoid.Process):
         pendulum.set_lambda(lambda_)
 
 
-class PreviewTrajectoryDrawer(pymanoid.Process):
+class CaptureTrajectoryDrawer(pymanoid.Process):
+
+    """
+    Optional simulation process to draw capture trajectories.
+    """
 
     def __init__(self, controller):
-        super(PreviewTrajectoryDrawer, self).__init__()
+        super(CaptureTrajectoryDrawer, self).__init__()
         self.handles = []
         self.one_step = controller.one_step
         self.zero_step = controller.zero_step
 
     def on_tick(self, sim):
+        """
+        Main function called at each control cycle.
+
+        Parameters
+        ----------
+        sim : Simulation
+            Current simulation instance.
+        """
         new_handles = []
         if self.one_step.solution is not None:
             new_handles.extend(self.one_step.draw_solution('r'))
@@ -190,6 +262,9 @@ class PreviewTrajectoryDrawer(pymanoid.Process):
 
 
 def print_usage():
+    """
+    Tell the user how to call this script.
+    """
     print("Usage: %s [scenario] [solver]" % sys.argv[0])
     print("Scenarios:")
     print("    --elliptic       Elliptic stairase scenario")
@@ -201,6 +276,14 @@ def print_usage():
 
 
 def load_elliptic_staircase():
+    """
+    Load the elliptic staircase scenario.
+
+    Returns
+    -------
+    contact_feed : pymanoid.ContactFeed
+        Contact feed corresponding to the desired scenario.
+    """
     contact_feed = ContactFeed(
         path='scenarios/elliptic-staircase/contacts.json', cyclic=True)
     for (i, contact) in enumerate(contact_feed.contacts):
@@ -214,6 +297,14 @@ def load_elliptic_staircase():
 
 
 def load_flat_floor_staircase():
+    """
+    Load the flat floor scenario.
+
+    Returns
+    -------
+    contact_feed : pymanoid.ContactFeed
+        Contact feed corresponding to the desired scenario.
+    """
     contact_feed = ContactFeed(
         path='scenarios/flat-floor/contacts.json', cyclic=False)
     for (i, contact) in enumerate(contact_feed.contacts):
@@ -227,6 +318,14 @@ def load_flat_floor_staircase():
 
 
 def load_regular_staircase():
+    """
+    Load the regular staircase scenario.
+
+    Returns
+    -------
+    contact_feed : pymanoid.ContactFeed
+        Contact feed corresponding to the desired scenario.
+    """
     contact_feed = ContactFeed(
         path='scenarios/regular-staircase/contacts.json')
     for (i, contact) in enumerate(contact_feed.contacts):
@@ -244,22 +343,6 @@ def load_regular_staircase():
     return contact_feed
 
 
-def get_scenario():
-    scenario = None
-    if "--elliptic" in sys.argv:
-        scenario = "elliptic"
-    elif "--flat" in sys.argv:
-        scenario = "flat"
-    elif "--regular" in sys.argv:
-        scenario = "regular"
-    if scenario is None:
-        print_usage()
-    options = ["elliptic", "flat", "regular"]
-    while scenario not in options:
-        scenario = raw_input("Which scenario in %s? " % str(options))
-    return scenario
-
-
 def tweak_acyclic_contact_feed(contact_feed):
     """
     Duplicate last two contacts so that the robot terminates in double support
@@ -268,7 +351,7 @@ def tweak_acyclic_contact_feed(contact_feed):
     Parameters
     ----------
     contact_feed : pymanoid.ContactFeed
-        Contact sequence of the walking scenario.
+        Footstep sequence of the walking scenario.
     """
     assert not contact_feed.cyclic, "contact sequence is cyclic"
     assert contact_feed.contacts[-1].link == robot.left_foot
@@ -284,7 +367,26 @@ def tweak_acyclic_contact_feed(contact_feed):
 
 
 def load_scenario():
-    scenario = get_scenario()
+    """
+    Load scenario from command-line arguments.
+
+    Returns
+    -------
+    contact_feed : pymanoid.ContactFeed
+        Contact feed corresponding to the desired scenario.
+    """
+    scenario = None
+    available = ["elliptic", "flat", "regular"]
+    if "--elliptic" in sys.argv:
+        scenario = "elliptic"
+    elif "--flat" in sys.argv:
+        scenario = "flat"
+    elif "--regular" in sys.argv:
+        scenario = "regular"
+    if scenario is None:
+        print_usage()
+    while scenario not in available:
+        scenario = raw_input("Which scenario in %s? " % str(available))
     if scenario == "regular":
         contact_feed = load_regular_staircase()
     elif scenario == "flat":
@@ -297,6 +399,21 @@ def load_scenario():
 
 
 def init_robot_stance(contact_feed, robot):
+    """
+    Setup the initial robot stance from the desired footstep sequence.
+
+    Parameters
+    ----------
+    contact_feed : pymanoid.ContactFeed
+        Footstep sequence.
+    robot : pymanoid.Robot
+        Robot model.
+
+    Returns
+    -------
+    stance : pymanoid.Stance
+        Initial stance, i.e. set of contacts along with CoM position.
+    """
     init_com = 0.5 * (contact_feed.contacts[0].p + contact_feed.contacts[1].p)
     init_com += [0., 0., robot.leg_length]
     stance = Stance(
@@ -314,6 +431,16 @@ def init_robot_stance(contact_feed, robot):
 
 
 def setup_robot_ik(robot, pendulum):
+    """
+    Initialize all tasks for inverse kinematics.
+
+    Parameters
+    ----------
+    robot : pymanoid.Robot
+        Robot model.
+    pendulum : pymanoid.InvertedPendulum
+        Inverted pendulum model.
+    """
     robot.setup_ik_for_walking(pendulum.com)
     not_upper_body = set(robot.whole_body) - set(robot.upper_body)
     upper_body_task = pymanoid.tasks.MinVelTask(
@@ -337,24 +464,20 @@ if __name__ == "__main__":
     contact_feed = load_scenario()
     stance = init_robot_stance(contact_feed, robot)
     pendulum = InvertedPendulum(
-        robot.com, robot.comd,
-        contact=contact_feed.contacts[0],
+        robot.com, robot.comd, contact=contact_feed.contacts[0],
         lambda_min=LAMBDA_MIN, lambda_max=LAMBDA_MAX)
     setup_robot_ik(robot, pendulum)
-
     controller = WalkingController(pendulum, contact_feed)
     com_traj_drawer = TrajectoryDrawer(pendulum.com)
-    preview_traj_drawer = PreviewTrajectoryDrawer(controller)
+    preview_traj_drawer = CaptureTrajectoryDrawer(controller)
     sim.schedule(controller, log_comp_times=True)
     sim.schedule(pendulum)
     sim.schedule(robot.ik)
     sim.schedule_extra(com_traj_drawer)
     sim.schedule_extra(preview_traj_drawer)
     sim.step()
-
     if "--ipopt" in sys.argv:
         controller.one_step.capture_pb.nlp_solver = "ipopt"
         controller.zero_step.capture_pb.nlp_solver = "ipopt"
-
     if IPython.get_ipython() is None:
         IPython.embed()
