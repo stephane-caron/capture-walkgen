@@ -49,10 +49,6 @@ LAMBDA_MIN = 0.1 * gravity_const
 NB_MPC_STEPS = 10
 TARGET_COM_HEIGHT = 0.8
 
-# Inverse kinematics parameters
-CONTACT_IK_WEIGHT = 1.
-SWING_FOOT_IK_WEIGHT = 1e-3
-
 
 class WalkingController(pymanoid.Process):
 
@@ -143,8 +139,9 @@ class WalkingController(pymanoid.Process):
         else:  # current foot target is left foot
             swing_foot_target = stance.right_foot
             swing_foot_task = robot.ik.tasks['RightFootCenter']
-        robot.ik.tasks['LeftFootCenter'].weight = CONTACT_IK_WEIGHT
-        robot.ik.tasks['RightFootCenter'].weight = CONTACT_IK_WEIGHT
+        contact_weight = robot.ik.DEFAULT_WEIGHTS['CONTACT']
+        robot.ik.tasks['LeftFootCenter'].weight = contact_weight
+        robot.ik.tasks['RightFootCenter'].weight = contact_weight
         pendulum.set_contact(support_contact)
         self.double_support = False
         self.one_step.set_contacts(support_contact, target_contact)
@@ -159,8 +156,10 @@ class WalkingController(pymanoid.Process):
             # relax foot task weight during swinging
             s = self.swing_foot.progression
             y = (4 * s * (1 - s)) ** 2
-            self.swing_foot_task.weight = \
-                y * SWING_FOOT_IK_WEIGHT + (1 - y) * CONTACT_IK_WEIGHT
+            contact_weight = robot.ik.DEFAULT_WEIGHTS['CONTACT']
+            lowest_weight = contact_weight / 1000
+            self.swing_foot_task.weight = (
+                y * lowest_weight + (1 - y) * contact_weight)
         if self.double_support_brake is not None:  # end of contact sequence
             cop, lambda_ = self.double_support_brake.compute_controls()
         elif self.state == self.State.ZeroStep:
