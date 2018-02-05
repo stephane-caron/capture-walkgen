@@ -44,8 +44,7 @@ If you plan on trying out IPOPT (``--ipopt`` option), you will need to [install
 CasADi](https://github.com/casadi/casadi/wiki/InstallationLinux). Although
 pre-compiled binaries are available, it is better to [build it from
 source](https://github.com/casadi/casadi/wiki/InstallationLinux). When
-installing IPOPT, make sure to install the MA27 linear solver
-(``ThirdParty/HSL`` folder).
+installing IPOPT, make sure to install the MA27 linear solver.
   
 ## Questions?
 
