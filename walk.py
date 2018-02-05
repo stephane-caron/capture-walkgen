@@ -25,7 +25,8 @@ import sys
 
 try:  # use local pymanoid submodule
     script_path = os.path.realpath(__file__)
-    sys.path = [os.path.dirname(script_path) + '/pymanoid'] + sys.path
+    sys.path = [os.path.dirname(script_path) + '/deps/pymanoid'] + sys.path
+    sys.path = [os.path.dirname(script_path) + '/deps/toppra'] + sys.path
     import pymanoid
 except:  # avoid warning E402 from Pylint :p
     pass
