@@ -21,6 +21,7 @@
 
 from .capture_problem import CaptureProblem
 from .capture_solution import CaptureSolution
+from .controller import WalkingController
 from .double_support import DoubleSupportController
 from .one_step import OneStepController
 from .swing_foot import SwingFootTracker
@@ -32,5 +33,6 @@ __all__ = [
     'DoubleSupportController',
     'OneStepController',
     'SwingFootTracker',
+    'WalkingController',
     'ZeroStepController',
 ]
