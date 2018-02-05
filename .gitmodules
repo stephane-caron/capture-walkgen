@@ -1,6 +1,9 @@
 [submodule "pymanoid"]
-	path = pymanoid
+	path = deps/pymanoid
 	url = https://github.com/stephane-caron/pymanoid.git
 [submodule "scenarios"]
 	path = scenarios
 	url = https://github.com/stephane-caron/locomotion-scenarios.git
+[submodule "deps/toppra"]
+	path = deps/toppra
+	url = https://github.com/stephane-caron/toppra.git
