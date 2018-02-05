@@ -18,6 +18,12 @@ Authors:
 [Leonardo Lanari](http://www.diag.uniroma1.it/~lanari/) and
 [Bastien Mallein](http://www.math.univ-paris13.fr/~mallein/)
 
+## Getting started
+
+- [Installation instructions](#installation)
+- Documentation: [html](https://scaron.info/doc/capture_walking/) or
+  [pdf](https://scaron.info/doc/capture_walking/capture_walking.pdf)
+
 ## Installation
 
 The following instructions were verified on Ubuntu 14.04:
@@ -35,8 +41,8 @@ git clone --recursive https://github.com/stephane-caron/capture-walking.git
 ### Optional
 
 If you plan on trying out IPOPT (``--ipopt`` option), you will need to [install
-CasADi](https://github.com/casadi/casadi/wiki/InstallationLinux). Pre-compiled
-binaries are available, but I recommend you [build it from
+CasADi](https://github.com/casadi/casadi/wiki/InstallationLinux). Although
+pre-compiled binaries are available, it is better to [build it from
 source](https://github.com/casadi/casadi/wiki/InstallationLinux). When
 installing IPOPT, make sure to install the MA27 linear solver
 (``ThirdParty/HSL`` folder).

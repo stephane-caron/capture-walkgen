@@ -6,7 +6,8 @@ SPHINXOPTS    =
 SPHINXBUILD   = sphinx-build
 PAPER         = a4
 BUILDDIR      = build
-ONLINEDIR     = scaron.info:public_html/doc/pymanoid
+ONLINEDIR     = scaron.info:public_html/doc/capture_walking
+PDFFILE       = capture_walking.pdf
 
 # Internal variables.
 PAPEROPT_a4     = -D latex_paper_size=a4
@@ -48,8 +49,9 @@ linkcheck:
 
 .PHONY: pdfopen
 pdfopen: latexpdf
-	zathura $(BUILDDIR)/latex/*.pdf
+	zathura $(BUILDDIR)/latex/$(PDFFILE)
 
 .PHONY: upload
-upload: html
+upload: html latexpdf
+	cp $(BUILDDIR)/latex/$(PDFFILE) $(BUILDDIR)/html/$(PDFFILE)
 	rsync -auvz --delete-after $(BUILDDIR)/html/ $(ONLINEDIR)/
