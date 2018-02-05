@@ -49,4 +49,6 @@ installing IPOPT, make sure to install the MA27 linear solver
   
 ## Questions?
 
-Feel free to post your questions or comments in the issue tracker.
+Feel free to post your questions or comments in the issue tracker. See also the
+[Q & A section](https://scaron.info/research/capture-walking.html#q-a) on the
+paper's web page.
