@@ -42,19 +42,6 @@ class DoubleSupportController(object):
     k : scalar
         Stiffness scaling parameter.
 
-    Attributes
-    ----------
-    com_target : array
-        Target CoM position.
-    foot_center : array
-        World coordinates of the midway point between both feet.
-    k : scalar
-        Stiffness scaling parameter.
-    n : array
-        Normal vector used for height computations.
-    pendulum : pymanoid.InvertedPendulum
-        Inverted pendulum model.
-
     Notes
     -----
     The output CoM acceleration behavior will be that of a spring-damper with

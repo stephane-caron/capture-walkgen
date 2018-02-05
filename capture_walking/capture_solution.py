@@ -31,36 +31,11 @@ class CaptureSolution(object):
     Parameters
     ----------
     phi_1_n : array
-        Vector of optimization variables (from 1 to N).
+        Vector of optimization variables returned by call to solver.
     capture_pb : CaptureProblem
-        Capture problem solved.
+        Original capture problem.
     optimal_found : bool
         Did the solver converge to this solution?
-
-    Attributes
-    ----------
-    delta : array
-        Vector of squared differences.
-    lambda_ : array
-        Values for the piecewise-constant IPM stiffness solution. Filled by
-        calling :func:`compute_lambda`.
-    lambda_i : scalar
-        Initial IPM stiffness of the solution.
-    nb_steps : int
-        Number of spatial discretization steps.
-    omega_i : scalar
-        Initial IPM damping of the solution.
-    optimal_found : bool
-        Did the solver converge to this solution?
-    phi : array
-        Vector of optimization variables (from 0 to N).
-    s : list
-        Partition of the interval [0, 1] used for spatial discretization.
-    switch_times : list
-        List of switch times for the piecewise-constant solution. Filled by
-        calling :func:`compute_switch_times`.
-    var_cost : scalar
-        Squared-error cost in stiffness variations.
     """
 
     def __init__(self, phi_1_n, capture_pb, optimal_found=None):
@@ -213,12 +188,12 @@ class CaptureSolution(object):
 
     def s_from_phi(self, phi):
         """
-        Invert the function :math:`s \\mapsto \\phi(s)`.
+        Invert the function :math:`s \\mapsto \\varphi(s)`.
 
         Parameters
         ----------
         phi : scalar
-            Value of the function :math:`\\phi(s) = s \\omega(s)`.
+            Value of the function :math:`\\varphi(s) = s \\omega(s)`.
 
         Returns
         -------
@@ -227,12 +202,12 @@ class CaptureSolution(object):
 
         Notes
         -----
-        Given the index `j` such that :math:`\\phi_j \\leq \\phi < \\phi_{j+1}`,
-        the important formula behind this function is:
+        Given the index `j` such that :math:`\\varphi_j \\leq \\varphi <
+        \\varphi_{j+1}`, the important formula behind this function is:
 
         .. math::
 
-            \\phi(s) = \\sqrt{\\phi_j + \\lambda_j (s^2 - s_j^2)}
+            \\varphi(s) = \\sqrt{\\varphi_j + \\lambda_j (s^2 - s_j^2)}
 
         See the paper for derivation details.
         """
@@ -287,8 +262,8 @@ class CaptureSolution(object):
 
             t(s) = t_{j+1} + \\frac{1}{\\sqrt{\\lambda_j}} \\log\\left(
                 \\frac{
-                    \\sqrt{\\phi_{i+1}} + \\sqrt{\\lambda_j} s_{j+1}}{
-                    \\sqrt{\\phi_{i+1} - \\lambda_j (s_{j+1}^2 - s^2)}
+                    \\sqrt{\\varphi_{i+1}} + \\sqrt{\\lambda_j} s_{j+1}}{
+                    \\sqrt{\\varphi_{i+1} - \\lambda_j (s_{j+1}^2 - s^2)}
                 + \\sqrt{\\lambda_j} s} \\right)
 
         See the paper for a derivation of this formula.

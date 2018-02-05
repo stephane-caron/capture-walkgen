@@ -43,23 +43,6 @@ class OneStepController(object):
         Number of discretization steps for the preview trajectory.
     target_height : scalar
         Desired altitude at the end of the step.
-
-    Attributes
-    ----------
-    capture_pb : capture_walking.CaptureProblem
-        Underlying capture problem.
-    com : pymanoid.Point
-        Center of mass state (position and velocity).
-    pendulum : pymanoid.InvertedPendulum
-        Inverted pendulum model.
-    solution : capture_walking.CaptureSolution
-        Solution to last capture problem solved.
-    support_contact : pymanoid.Contact
-        Current support contact.
-    target_contact : pymanoid.Contact
-        Desired next footstep location.
-    target_height : scalar
-        Target CoM height at end of step.
     """
 
     def __init__(self, pendulum, nb_steps, target_height):
@@ -212,6 +195,11 @@ class OneStepController(object):
     def compute_controls(self, time_to_heel_strike=None):
         """
         Compute pendulum controls for the current state.
+
+        Parameters
+        ----------
+        time_to_heel_strike : scalar
+            When set, make sure that the contact switch happens after this time.
 
         Returns
         -------

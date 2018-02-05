@@ -66,9 +66,9 @@ class ZeroStepController(object):
 
     Notes
     -----
-    This implementation works in a local frame, as reported in the ICRA 2018
-    paper <https://scaron.info/research/icra-2018.html>. Computations are a bit
-    simpler in the world frame as done in the `OneStepController`.
+    This implementation works in a local frame, as documented in the `ICRA 2018
+    report <https://scaron.info/research/icra-2018.html>`_. Computations are a
+    bit simpler in the world frame as done in :class:`.OneStepController`.
     """
 
     def __init__(self, pendulum, nb_steps, target_height, cop_gain):
@@ -153,14 +153,14 @@ class ZeroStepController(object):
 
     def compute_controls(self):
         """
-        Compute pendulum controls for the current simulation step.
+        Compute pendulum controls for the current state.
 
         Returns
         -------
         cop : (3,) array
-            COP coordinates in the world frame.
+            CoP coordinates in the world frame.
         push : scalar
-            Leg push `lambda >= 0`.
+            IPM stiffness :math:`\\lambda \\geq 0`.
         """
         self.comp_time = None
         self.solution = None

@@ -51,35 +51,6 @@ class CaptureProblem(object):
         Maximum leg stiffness (positive).
     nb_steps : integer
         Number of segments where :math:`\\lambda(t)` is constant.
-
-    Attributes
-    ----------
-    cps_pb : cps.Problem
-        Internal problem for CaptureProblemSolver.
-    delta : array
-        Vector of squared differences.
-    init_omega_max : scalar
-        Upper bound on the initial IPM damping.
-    init_omega_min : scalar
-        Lower bound on the initial IPM damping.
-    init_zbar : scalar
-        Initial CoM height above contact.
-    init_zbar_deriv : scalar
-        Initial derivative of CoM height above contact.
-    lambda_max : scalar
-        Upper bound on IPM stiffness.
-    lambda_min : scalar
-        Lower bound on IPM stiffness.
-    nb_steps : int
-        Number of spatial discretization steps.
-    nlp_solver : string
-        Internal nonlinear solver to be used.
-    s : list
-        Partition of the interval [0, 1] used for spatial discretization.
-    s_sq : list
-        List of squared values of the aforementioned partition.
-    target_height : scalar
-        Target CoM height.
     """
 
     def __init__(self, lambda_min, lambda_max, nb_steps):
@@ -135,16 +106,56 @@ class CaptureProblem(object):
         self.init_omega_max = init_omega_max
         self.init_omega_min = init_omega_min
 
-    def solve(self):
+    def set_init_zbar(self, init_zbar):
+        """
+        Set the initial CoM height.
+
+        Parameters
+        ----------
+        init_zbar : scalar
+            Initial CoM height.
+        """
+        self.init_zbar = init_zbar
+
+    def set_init_zbar_deriv(self, init_zbar_deriv):
+        """
+        Set the initial CoM height.
+
+        Parameters
+        ----------
+        init_zbar_deriv : scalar
+            Initial derivative of the CoM height.
+        """
+        self.init_zbar_deriv = init_zbar_deriv
+
+    def set_target_height(self, target_height):
+        """
+        Set the target CoM height.
+
+        Parameters
+        ----------
+        target_height : scalar
+            Target CoM height.
+        """
+        self.target_height = target_height
+
+    def solve(self, solver=None):
         """
         Solve the capture problem.
+
+        Parameters
+        ----------
+        solver : string, optional
+            Solver to use, between ``"cps"`` (default) and ``"ipopt"``. You can
+            also use the internal attribute ``self.nlp_solver`` to save this
+            setting.
 
         Returns
         -------
         solution : CaptureSolution
             Solution to the problem, if any.
         """
-        if self.nlp_solver == "ipopt":
+        if solver == "ipopt" or self.nlp_solver == "ipopt":
             return self.solve_with_ipopt()
         return self.solve_with_cps()
 

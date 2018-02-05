@@ -44,52 +44,27 @@ class WalkingController(pymanoid.Process):
 
     Parameters
     ----------
-    pendulum : pymanoid.InvertedPendulum
-        Inverted pendulum model.
-    contact_feed : pymanoid.ContactFeed
-        Footstep sequence of the walking scenario.
-
-    Attributes
-    ----------
-    contact_feed : pymanoid.ContactFeed
-        Footstep sequence of the walking scenario.
-    double_support : bool
-        Is the robot currently in double support?
-    double_support_brake : capture_walking.DoubleSupportController
-        Double-support controller used at the end of the walking pattern.
-    initial_double_support : bool
-        Is the robot currently in its initial double-support stance?
-    one_step : capture_walking.OneStepController
-        One-step capture problem solver.
-    pendulum : pymanoid.InvertedPendulum
-        Inverted pendulum model.
     robot : pymanoid.Robot
         Robot model.
-    state : State
-        Current FSM state.
-    support_contact : pymanoid.Contact
-        Current support contact.
-    support_foot : pymanoid.Manipulator
-        Current support foot of the robot.
-    swing_foot : pymanoid.Manipulator
-        Current swing foot of the robot.
-    target_contact : pymanoid.Contact
-        Desired next footstep location.
-    zero_step : capture_walking.ZeroStepController
-        Zero-step capture problem solver.
+    pendulum : pymanoid.InvertedPendulum
+        Inverted pendulum model.
+    contact_feed : pymanoid.ContactFeed
+        Footstep sequence of the walking scenario.
+    nb_steps : int
+        Number of spatial discretization steps in capture problems.
+    target_height : scalar
+        CoM height above target contacts in asymptotic static equilibrium.
     """
 
-    def __init__(self, robot, pendulum, contact_feed, nb_mpc_steps,
-                 target_com_height):
+    def __init__(self, robot, pendulum, contact_feed, nb_steps, target_height):
         super(WalkingController, self).__init__()
         support_foot = robot.right_foot
         support_contact = contact_feed.pop()
         target_contact = contact_feed.pop()
-        one_step = OneStepController(
-            pendulum, nb_mpc_steps, target_com_height)
+        one_step = OneStepController(pendulum, nb_steps, target_height)
         one_step.set_contacts(support_contact, target_contact)
         zero_step = ZeroStepController(
-            pendulum, nb_mpc_steps, target_com_height, cop_gain=2.)
+            pendulum, nb_steps, target_height, cop_gain=2.)
         zero_step.set_contact(target_contact)
         swing_foot = SwingFootTracker(
             contact_feed.last, target_contact, robot.stance.left_foot)
@@ -104,8 +79,8 @@ class WalkingController(pymanoid.Process):
         self.support_contact = support_contact
         self.support_foot = support_foot
         self.swing_foot = swing_foot
-        self.target_com_height = target_com_height
         self.target_contact = target_contact
+        self.target_height = target_height
         self.zero_step = zero_step
 
     def precompute(self):
@@ -157,7 +132,7 @@ class WalkingController(pymanoid.Process):
         if target_contact is None:  # end of contact sequence
             self.double_support = True
             self.double_support_brake = DoubleSupportController(
-                self.pendulum, self.robot.stance, self.target_com_height)
+                self.pendulum, self.robot.stance, self.target_height)
             self.pendulum.check_cop = False
             return
         if 'ight' in self.swing_foot.foot_target.name:
