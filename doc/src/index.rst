@@ -7,10 +7,11 @@ Manual
 An implementation for `pymanoid <https://github.com/stephane-caron/pymanoid>`_
 of the walking controller described in [Caron18]_.
 
-Capture walking
-===============
+Capturability of the inverted pendulum
+======================================
 
-This framework applies to the *inverted pendulum model* (IPM):
+This framework applies to the *inverted pendulum model* (IPM), a reduced model
+for 3D walking whose equation of motion is:
 
 .. math::
 
@@ -18,12 +19,35 @@ This framework applies to the *inverted pendulum model* (IPM):
     \boldsymbol{g}
 
 with :math:`\boldsymbol{c}` the position of the center of mass (CoM) and
-:math:`\boldsymbol{g}` the gravity vector. The two control inputs of the IPM
-are the location of its center of pressure (CoP) :math:`\boldsymbol{r}` and its
-stiffness :math:`\lambda`. This model is implemented in the
-:class:`pymanoid.InvertedPendulum` class. IPM states (CoM position and
-velocity) and inputs are then sent to the :class:`pymanoid.IKSolver` inverse
-kinematics of the :class:`pymanoid.Humanoid` robot model.
+:math:`\boldsymbol{g} = - g \boldsymbol{e}_z` the gravity vector. The two
+control inputs of the IPM are the location of its center of pressure (CoP)
+:math:`\boldsymbol{r}` and its stiffness :math:`\lambda`. Parameters of the IPM
+are:
+
+- :math:`g`: the gravitational constant
+- :math:`\lambda_\text{min}` and :math:`\lambda_\text{max}`: lower and upper
+  bound on the stiffness :math:`\lambda`
+
+This model is implemented in the :class:`pymanoid.InvertedPendulum` class: 
+
+.. code:: python
+
+    from pymanoid.sim import gravity_const as g
+    pendulum = InvertedPendulum(
+        com, comd, contact=support_contact,
+        lambda_min=0.1 * g, lambda_max=2 * g)
+    sim.schedule(pendulum)  # integrate IPM dynamics
+
+To make the robot's inverse kinematics track the reduce model, call:
+
+.. code:: python
+
+    robot.setup_ik_for_walking(pendulum.com)
+    sim.schedule(robot.ik)  # enable robot IK
+
+where ``robot`` is a :class:`pymanoid.Humanoid` robot model. IPM states (CoM
+position ``com`` and velocity ``comd``) will then be sent to the
+:class:`pymanoid.IKSolver` inverse kinematics of the robot.
 
 Capture problem
 ---------------
@@ -53,11 +77,8 @@ Mathematically, a capture problem is formalized as:
 
 where the following notations are used:
 
-- :math:`g` is the gravitational constant
 - :math:`n` is the number of discretization steps
 - :math:`\delta_1, \ldots, \delta_n` are spatial discretization steps
-- :math:`\lambda_\text{min}` and :math:`\lambda_\text{max}` are the lower and
-  upper bound on IPM stiffness
 
 As these quantities don't vary between capture problems during walking, they
 are set in the constructor of the :class:`capture_walking.CaptureProblem`

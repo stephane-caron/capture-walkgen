@@ -1,4 +1,4 @@
-# Capturability-based Analysis, Optimization and Control of 3D Bipedal Walking
+# Capture Walking Controller
 
 Source code for https://hal.archives-ouvertes.fr/hal-01689331
 
@@ -21,8 +21,8 @@ Authors:
 ## Getting started
 
 - [Installation instructions](#installation)
-- Documentation: [html](https://scaron.info/doc/capture_walking/) or
-  [pdf](https://scaron.info/doc/capture_walking/capture_walking.pdf)
+- Manual: [HTML](https://scaron.info/doc/capture_walking/) or
+  [PDF](https://scaron.info/doc/capture_walking/capture_walking.pdf)
 
 ## Installation
 
@@ -30,7 +30,7 @@ The following instructions were verified on Ubuntu 14.04:
 
 - Install OpenRAVE: here are [instructions for Ubuntu 14.04](https://scaron.info/teaching/installing-openrave-on-ubuntu-14.04.html) as well as [for Ubuntu 16.04](https://scaron.info/teaching/installing-openrave-on-ubuntu-16.04.html)
 - Install Python dependencies: ``sudo apt-get install cython python python-dev python-pip python-scipy``
-- Install the QP solver module for Python: ``sudo pip install quadprog``
+- Install the QP solver for Python: ``sudo pip install quadprog``
 
 Finally, clone this repository and its submodules via:
 
@@ -40,11 +40,11 @@ git clone --recursive https://github.com/stephane-caron/capture-walking.git
 
 ### Optional
 
-If you plan on trying out IPOPT (``--ipopt`` option), you will need to [install
+If you plan on trying out IPOPT, you will need to [install
 CasADi](https://github.com/casadi/casadi/wiki/InstallationLinux). Although
 pre-compiled binaries are available, it is better to [build it from
-source](https://github.com/casadi/casadi/wiki/InstallationLinux). When
-installing IPOPT, make sure to install the MA27 linear solver.
+source](https://github.com/casadi/casadi/wiki/InstallationLinux), making sure
+to configure it with the MA27 linear solver.
   
 ## Questions?
 
