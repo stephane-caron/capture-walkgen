@@ -53,6 +53,9 @@ class CaptureSolution(object):
         self.s = capture_pb.s
         self.switch_times = None
 
+    def __str__(self):
+        return "phi = %s;" % str(list(self.phi))
+
     @property
     def var_cost(self):
         """
