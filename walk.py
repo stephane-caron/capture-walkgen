@@ -8,16 +8,16 @@
 #
 # capture-walking is free software: you can redistribute it and/or modify it
 # under the terms of the GNU Lesser General Public License as published by the
-# Free Software Foundation, either version 3 of the License, or (at your option)
-# any later version.
+# Free Software Foundation, either version 3 of the License, or (at your
+# option) any later version.
 #
-# capture-walking is distributed in the hope that it will be useful, but WITHOUT
-# ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
-# FOR A PARTICULAR PURPOSE. See the GNU Lesser General Public License for more
-# details.
+# capture-walking is distributed in the hope that it will be useful, but
+# WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
+# FITNESS FOR A PARTICULAR PURPOSE. See the GNU Lesser General Public License
+# for more details.
 #
-# You should have received a copy of the GNU Lesser General Public License along
-# with capture-walking. If not, see <http://www.gnu.org/licenses/>.
+# You should have received a copy of the GNU Lesser General Public License
+# along with capture-walking. If not, see <http://www.gnu.org/licenses/>.
 
 import IPython
 import os
@@ -28,7 +28,7 @@ try:  # use local pymanoid submodule
     sys.path = [os.path.dirname(script_path) + '/deps/pymanoid'] + sys.path
     sys.path = [os.path.dirname(script_path) + '/deps/toppra'] + sys.path
     import pymanoid
-except:  # avoid warning E402 from Pylint :p
+except Exception:  # avoid warning E402 from Pylint :p
     pass
 
 from numpy import dot, sqrt
@@ -51,8 +51,8 @@ def print_usage():
     """
     Tell the user how to call this script.
     """
-    print("Usage: %s [scenario] [solver]" % sys.argv[0])
-    print("Scenarios:")
+    print("Usage: %s [footsteps] [solver]" % sys.argv[0])
+    print("Footstep plans:")
     print("    --elliptic       Elliptic stairase scenario")
     print("    --flat           Flat floor scenario")
     print("    --regular        Regular stairase scenario")
@@ -71,7 +71,7 @@ def load_elliptic_staircase():
         Contact feed corresponding to the desired scenario.
     """
     contact_feed = ContactFeed(
-        path='scenarios/elliptic-staircase/contacts.json', cyclic=True)
+        path='footsteps/elliptic-staircase.json', cyclic=True)
     for (i, contact) in enumerate(contact_feed.contacts):
         contact.link = robot.right_foot if i % 2 == 0 else robot.left_foot
     sim.move_camera_to([
@@ -91,8 +91,7 @@ def load_flat_floor_staircase():
     contact_feed : pymanoid.ContactFeed
         Contact feed corresponding to the desired scenario.
     """
-    contact_feed = ContactFeed(
-        path='scenarios/flat-floor/contacts.json', cyclic=False)
+    contact_feed = ContactFeed(path='footsteps/flat-floor.json', cyclic=False)
     for (i, contact) in enumerate(contact_feed.contacts):
         contact.link = robot.right_foot if i % 2 == 0 else robot.left_foot
     sim.move_camera_to([
@@ -112,8 +111,7 @@ def load_regular_staircase():
     contact_feed : pymanoid.ContactFeed
         Contact feed corresponding to the desired scenario.
     """
-    contact_feed = ContactFeed(
-        path='scenarios/regular-staircase/contacts.json')
+    contact_feed = ContactFeed(path='footsteps/regular-staircase.json')
     for (i, contact) in enumerate(contact_feed.contacts):
         contact.link = robot.right_foot if i % 2 == 0 else robot.left_foot
         contact.takeoff_clearance = 0.15  # [m]
@@ -270,7 +268,7 @@ if __name__ == "__main__":
         from hrp4_description import set_velocity_limits
         robot = pymanoid.robots.HRP4()
         set_velocity_limits(robot)
-    except:  # otherwise use default model
+    except Exception:  # otherwise use default model
         robot = pymanoid.robots.JVRC1()
     robot.set_transparency(0.2)
     sim.set_viewer()
