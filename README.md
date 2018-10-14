@@ -19,7 +19,7 @@ The following instructions were verified on Ubuntu 14.04:
 Finally, clone this repository and its submodules via:
 
 ```bash
-git clone --recursive https://github.com/stephane-caron/capture-walking.git
+git clone --recursive https://github.com/stephane-caron/capture-walking-pattern-generation.git
 ```
 
 ### Optional
