@@ -19,7 +19,7 @@ The following instructions were verified on Ubuntu 14.04:
 Finally, clone this repository and its submodules via:
 
 ```bash
-git clone --recursive https://github.com/stephane-caron/capture-walking-pattern-generation.git
+git clone --recursive https://github.com/stephane-caron/capture-walkgen.git
 ```
 
 ### Optional
@@ -32,6 +32,4 @@ to configure it with the MA27 linear solver.
   
 ## Questions?
 
-Feel free to post your questions or comments in the issue tracker. See also the
-[Q & A section](https://scaron.info/research/capture-walking.html#q-a) on the
-paper's web page.
+Feel free to post your questions or comments in the issue tracker.
