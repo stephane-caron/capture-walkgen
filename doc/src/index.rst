@@ -5,7 +5,7 @@ Manual
 ######
 
 An implementation for `pymanoid <https://github.com/stephane-caron/pymanoid>`_
-of the walking controller described in [Caron18]_.
+of the walking controller described in [Caron19]_.
 
 Capturability of the inverted pendulum
 ======================================
@@ -158,7 +158,7 @@ The controller follows a Finite State Machine (FSM) with two states: `Zero-step
 capture <#zero-step-capture>`_, where the robot balances on its support leg
 while swinging for the next footstep, and `One-step capture
 <#one-step-capture>`_, where the robot pushes on its support leg toward the
-next footstep. See [Caron18]_ for details. When walking is finished, a simple
+next footstep. See [Caron19]_ for details. When walking is finished, a simple
 `Double-support capture <#double-support-capture>`_ strategy is applied to
 bring the center of mass (CoM) to a mid-foot location.
 
@@ -217,4 +217,5 @@ These two inputs can then be sent to the robot's CoM task directly.
 References
 ==========
 
-.. [Caron18] `Capturability-based Analysis, Optimization and Control of 3D Bipedal Walking <https://hal.archives-ouvertes.fr/hal-01689331/document>`_, S. Caron, A. Escande, L. Lanari and B. Mallein, submitted, January 2018.
+.. [Caron19] `Capturability-based Pattern Generation for Walking with Variable Height
+ <https://hal.archives-ouvertes.fr/hal-01689331/document>`_, S. Caron, A. Escande, L. Lanari and B. Mallein, IEEE Transactions on Robotics, July 2019.

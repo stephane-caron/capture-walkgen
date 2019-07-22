@@ -7,7 +7,6 @@ SPHINXBUILD   = sphinx-build
 PAPER         = a4
 BUILDDIR      = build
 ONLINEDIR     = scaron.info:public_html/doc/capture_walking
-PDFFILE       = capture_walking.pdf
 
 # Internal variables.
 PAPEROPT_a4     = -D latex_paper_size=a4
@@ -47,11 +46,7 @@ linkcheck:
 	@echo "Link check complete; look for any errors in the above output " \
 	      "or in $(BUILDDIR)/linkcheck/output.txt."
 
-.PHONY: pdfopen
-pdfopen: latexpdf
-	zathura $(BUILDDIR)/latex/$(PDFFILE)
-
 .PHONY: upload
 upload: html latexpdf
-	cp $(BUILDDIR)/latex/$(PDFFILE) $(BUILDDIR)/html/$(PDFFILE)
+	cp $(BUILDDIR)/latex/capture-walkgen.pdf $(BUILDDIR)/html/capture_walking.pdf
 	rsync -auvz --delete-after $(BUILDDIR)/html/ $(ONLINEDIR)/
