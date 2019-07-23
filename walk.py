@@ -169,6 +169,7 @@ def load_scenario():
         scenario = "regular"
     if scenario is None:
         print_usage()
+        scenario = "elliptic"
     while scenario not in available:
         scenario = raw_input("Which scenario in %s? " % str(available))
     if scenario == "regular":
