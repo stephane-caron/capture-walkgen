@@ -3,21 +3,21 @@
 #
 # Copyright (C) 2017-2018 Stephane Caron <stephane.caron@lirmm.fr>
 #
-# This file is part of capture-walking
-# <https://github.com/stephane-caron/capture-walking>.
+# This file is part of capture-walkgen
+# <https://github.com/stephane-caron/capture-walkgen>.
 #
-# capture-walking is free software: you can redistribute it and/or modify it
-# under the terms of the GNU Lesser General Public License as published by the
-# Free Software Foundation, either version 3 of the License, or (at your option)
-# any later version.
+# capture-walkgen is free software: you can redistribute it and/or modify it
+# under the terms of the GNU General Public License as published by the Free
+# Software Foundation, either version 3 of the License, or (at your option) any
+# later version.
 #
-# capture-walking is distributed in the hope that it will be useful, but WITHOUT
-# ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
-# FOR A PARTICULAR PURPOSE. See the GNU Lesser General Public License for more
+# capture-walkgen is distributed in the hope that it will be useful, but
+# WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
+# FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for more
 # details.
 #
-# You should have received a copy of the GNU Lesser General Public License along
-# with capture-walking. If not, see <http://www.gnu.org/licenses/>.
+# You should have received a copy of the GNU General Public License along with
+# capture-walkgen. If not, see <http://www.gnu.org/licenses/>.
 
 import pymanoid
 
@@ -122,7 +122,7 @@ class OneStepController(object):
             return find_interval_bounds(v_w, u_w, alpha_min, alpha_max)
 
         alpha_intervals = []
-        for root_id in xrange(len(roots) - 2, -1, -1):
+        for root_id in range(len(roots) - 2, -1, -1):
             alpha_min = roots[root_id]
             alpha_max = roots[root_id + 1]
             alpha_min, alpha_max = refine_alpha_interval(alpha_min, alpha_max)
@@ -199,7 +199,8 @@ class OneStepController(object):
         Parameters
         ----------
         time_to_heel_strike : scalar
-            When set, make sure that the contact switch happens after this time.
+            When set, make sure that the contact switch happens after this
+            time.
 
         Returns
         -------
@@ -250,7 +251,7 @@ class OneStepController(object):
         points = []
         pendulum.set_contact(self.support_contact)
         pendulum.set_cop(self.solution.r_i)
-        for j in xrange(self.capture_pb.nb_steps):
+        for j in range(self.capture_pb.nb_steps):
             t_j = self.solution.switch_times[j]
             lambda_j = self.solution.lambda_[self.capture_pb.nb_steps - j - 1]
             t_next = max_time

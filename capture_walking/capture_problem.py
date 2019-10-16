@@ -3,21 +3,21 @@
 #
 # Copyright (C) 2017-2018 Stephane Caron <stephane.caron@lirmm.fr>
 #
-# This file is part of capture-walking
-# <https://github.com/stephane-caron/capture-walking>.
+# This file is part of capture-walkgen
+# <https://github.com/stephane-caron/capture-walkgen>.
 #
-# capture-walking is free software: you can redistribute it and/or modify it
-# under the terms of the GNU Lesser General Public License as published by the
-# Free Software Foundation, either version 3 of the License, or (at your option)
-# any later version.
+# capture-walkgen is free software: you can redistribute it and/or modify it
+# under the terms of the GNU General Public License as published by the Free
+# Software Foundation, either version 3 of the License, or (at your option) any
+# later version.
 #
-# capture-walking is distributed in the hope that it will be useful, but WITHOUT
-# ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
-# FOR A PARTICULAR PURPOSE. See the GNU Lesser General Public License for more
+# capture-walkgen is distributed in the hope that it will be useful, but
+# WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
+# FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for more
 # details.
 #
-# You should have received a copy of the GNU Lesser General Public License along
-# with capture-walking. If not, see <http://www.gnu.org/licenses/>.
+# You should have received a copy of the GNU General Public License along with
+# capture-walkgen. If not, see <http://www.gnu.org/licenses/>.
 
 import pymanoid
 
@@ -54,9 +54,9 @@ class CaptureProblem(object):
     """
 
     def __init__(self, lambda_min, lambda_max, nb_steps):
-        s_list = [j * 1. / nb_steps for j in xrange(nb_steps)] + [1.]
+        s_list = [j * 1. / nb_steps for j in range(nb_steps)] + [1.]
         s_sq = [s ** 2 for s in s_list]
-        delta = [s_sq[j + 1] - s_sq[j] for j in xrange(nb_steps)]
+        delta = [s_sq[j + 1] - s_sq[j] for j in range(nb_steps)]
         cps_pb = None
         if cps is not None:
             raw_pb = cps.RawProblem()
@@ -214,7 +214,7 @@ class CaptureProblem(object):
         lambda_f = g / self.target_height
         lambda_guess = lambda_f
         lambda_prev = lambda_f
-        for j in xrange(self.nb_steps):
+        for j in range(self.nb_steps):
             phi_lb = self.s_sq[j + 1] * self.lambda_min
             phi_ub = self.s_sq[j + 1] * self.lambda_max
             if j == self.nb_steps - 1:

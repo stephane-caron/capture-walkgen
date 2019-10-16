@@ -3,23 +3,24 @@
 #
 # Copyright (C) 2017-2018 Stephane Caron <stephane.caron@lirmm.fr>
 #
-# This file is part of capture-walking
-# <https://github.com/stephane-caron/capture-walking>.
+# This file is part of capture-walkgen
+# <https://github.com/stephane-caron/capture-walkgen>.
 #
-# capture-walking is free software: you can redistribute it and/or modify it
-# under the terms of the GNU Lesser General Public License as published by the
-# Free Software Foundation, either version 3 of the License, or (at your option)
-# any later version.
+# capture-walkgen is free software: you can redistribute it and/or modify it
+# under the terms of the GNU General Public License as published by the Free
+# Software Foundation, either version 3 of the License, or (at your option) any
+# later version.
 #
-# capture-walking is distributed in the hope that it will be useful, but WITHOUT
-# ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
-# FOR A PARTICULAR PURPOSE. See the GNU Lesser General Public License for more
+# capture-walkgen is distributed in the hope that it will be useful, but
+# WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
+# FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for more
 # details.
 #
-# You should have received a copy of the GNU Lesser General Public License along
-# with capture-walking. If not, see <http://www.gnu.org/licenses/>.
+# You should have received a copy of the GNU General Public License along with
+# capture-walkgen. If not, see <http://www.gnu.org/licenses/>.
 
-from numpy import arange, arctan, array, cos, cross, dot, sin, sqrt, tan, vstack
+from numpy import arange, array, cross, dot, sqrt, vstack
+from numpy import arctan, cos, sin, tan
 from pymanoid.body import Point
 from pymanoid.gui import draw_point, draw_trajectory
 from pymanoid.misc import normalize, warn
@@ -203,7 +204,7 @@ class ZeroStepController(object):
         alpha_i = r_i[0] / cos(self.frame.phi)
         beta_i = r_i[1] / cos(self.frame.theta)
         points = []
-        for i in xrange(self.capture_pb.nb_steps):
+        for i in range(self.capture_pb.nb_steps):
             t_i = self.solution.switch_times[i]
             t_next = max_time
             if i < self.capture_pb.nb_steps - 1:

@@ -3,21 +3,21 @@
 #
 # Copyright (C) 2017-2018 Stephane Caron <stephane.caron@lirmm.fr>
 #
-# This file is part of capture-walking
-# <https://github.com/stephane-caron/capture-walking>.
+# This file is part of capture-walkgen
+# <https://github.com/stephane-caron/capture-walkgen>.
 #
-# capture-walking is free software: you can redistribute it and/or modify it
-# under the terms of the GNU Lesser General Public License as published by the
-# Free Software Foundation, either version 3 of the License, or (at your option)
-# any later version.
+# capture-walkgen is free software: you can redistribute it and/or modify it
+# under the terms of the GNU General Public License as published by the Free
+# Software Foundation, either version 3 of the License, or (at your option) any
+# later version.
 #
-# capture-walking is distributed in the hope that it will be useful, but WITHOUT
-# ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
-# FOR A PARTICULAR PURPOSE. See the GNU Lesser General Public License for more
+# capture-walkgen is distributed in the hope that it will be useful, but
+# WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
+# FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for more
 # details.
 #
-# You should have received a copy of the GNU Lesser General Public License along
-# with capture-walking. If not, see <http://www.gnu.org/licenses/>.
+# You should have received a copy of the GNU General Public License along with
+# capture-walkgen. If not, see <http://www.gnu.org/licenses/>.
 
 from bisect import bisect_right
 from numpy import array, cosh, log, sinh, sqrt, tanh
@@ -63,14 +63,14 @@ class CaptureSolution(object):
         """
         return sum(
             (self.lambda_[i + 1] - self.lambda_[i])**2
-            for i in xrange(self.nb_steps))
+            for i in range(self.nb_steps))
 
     def compute_lambda(self):
         """
         Compute the full vector of stiffness values.
         """
         delta, phi, n = self.delta, self.phi, self.nb_steps
-        lambda_ = [(phi[i + 1] - phi[i]) / delta[i] for i in xrange(n)]
+        lambda_ = [(phi[i + 1] - phi[i]) / delta[i] for i in range(n)]
         self.lambda_ = array(lambda_ + [lambda_[-1]])
 
     def compute_switch_times(self):
@@ -79,7 +79,7 @@ class CaptureSolution(object):
         """
         switch_times = [0.]
         switch_time = 0.
-        for j in xrange(self.nb_steps - 1, 0, -1):
+        for j in range(self.nb_steps - 1, 0, -1):
             sqrt_lambda_j = sqrt(self.lambda_[j])
             num = sqrt(self.phi[j + 1]) + sqrt_lambda_j * self.s[j + 1]
             denom = sqrt(self.phi[j]) + sqrt_lambda_j * self.s[j]
@@ -90,7 +90,7 @@ class CaptureSolution(object):
 
     def find_switch_time_before(self, t):
         """
-        Find a switch time :math:`t_j` such that :math:`t_j \leq t < t_{j+1}`.
+        Find a switch time :math:`t_j` such that :math:`t_j \\leq t < t_{j+1}`.
 
         Parameters
         ----------
