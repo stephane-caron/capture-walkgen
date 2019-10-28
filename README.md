@@ -5,8 +5,8 @@ Source code for https://hal.archives-ouvertes.fr/hal-01689331/document
 ## Getting started
 
 - [Installation instructions](#installation)
-- Manual: [HTML](https://scaron.info/doc/capture_walking/) or
-  [PDF](https://scaron.info/doc/capture_walking/capture_walking.pdf)
+- Manual: [HTML](https://scaron.info/doc/capture-walkgen/) or
+  [PDF](https://scaron.info/doc/capture-walkgen/capture-walkgen.pdf)
 
 ## Installation
 

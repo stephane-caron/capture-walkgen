@@ -6,7 +6,7 @@ SPHINXOPTS    =
 SPHINXBUILD   = sphinx-build
 PAPER         = a4
 BUILDDIR      = build
-ONLINEDIR     = scaron.info:public_html/doc/capture_walking
+ONLINEDIR     = scaron.info:public_html/doc/capture-walkgen
 
 # Internal variables.
 PAPEROPT_a4     = -D latex_paper_size=a4
@@ -48,5 +48,5 @@ linkcheck:
 
 .PHONY: upload
 upload: html latexpdf
-	cp $(BUILDDIR)/latex/capture-walkgen.pdf $(BUILDDIR)/html/capture_walking.pdf
+	cp $(BUILDDIR)/latex/capture-walkgen.pdf $(BUILDDIR)/html/capture-walkgen.pdf
 	rsync -auvz --delete-after $(BUILDDIR)/html/ $(ONLINEDIR)/

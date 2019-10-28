@@ -81,10 +81,10 @@ where the following notations are used:
 - :math:`\delta_1, \ldots, \delta_n` are spatial discretization steps
 
 As these quantities don't vary between capture problems during walking, they
-are set in the constructor of the :class:`capture_walking.CaptureProblem`
+are set in the constructor of the :class:`capture_walkgen.CaptureProblem`
 class:
 
-.. autoclass:: capture_walking.CaptureProblem
+.. autoclass:: capture_walkgen.CaptureProblem
 
 The remaining notations in the capture problem above are:
 
@@ -96,16 +96,16 @@ The remaining notations in the capture problem above are:
 
 These quantities are state-dependent, and can be set via the following setters:
 
-.. automethod:: capture_walking.CaptureProblem.set_init_omega_lim
-.. automethod:: capture_walking.CaptureProblem.set_init_zbar
-.. automethod:: capture_walking.CaptureProblem.set_init_zbar_deriv
-.. automethod:: capture_walking.CaptureProblem.set_target_height
+.. automethod:: capture_walkgen.CaptureProblem.set_init_omega_lim
+.. automethod:: capture_walkgen.CaptureProblem.set_init_zbar
+.. automethod:: capture_walkgen.CaptureProblem.set_init_zbar_deriv
+.. automethod:: capture_walkgen.CaptureProblem.set_target_height
 
 Once a capture problem is fully constructed, you can solve it by calling:
 
-.. automethod:: capture_walking.CaptureProblem.solve
+.. automethod:: capture_walkgen.CaptureProblem.solve
 
-By default, :class:`capture_walking.CaptureProblem` is a thin wrapper used to
+By default, :class:`capture_walkgen.CaptureProblem` is a thin wrapper used to
 call `CPS <https://github.com/jrl-umi3218/CaptureProblemSolver>`_, a tailored
 SQP optimization for this precise problem. You can also call the generic solver
 `IPOPT <https://projects.coin-or.org/Ipopt>`_ with the function above (requires
@@ -116,7 +116,7 @@ Capture solution
 
 Solutions found by the solver are stored in a:
 
-.. autoclass:: capture_walking.CaptureSolution
+.. autoclass:: capture_walkgen.CaptureSolution
 
 Capture solutions are lazily computed: by default, only the instantaneous IPM
 inputs :math:`\lambda_\text{i}`, :math:`\boldsymbol{r}_\text{i}` and
@@ -124,18 +124,18 @@ inputs :math:`\lambda_\text{i}`, :math:`\boldsymbol{r}_\text{i}` and
 :math:`\lambda(t)` as well as its switch times :math:`t_j`) is completed by
 calling:
 
-.. automethod:: capture_walking.CaptureSolution.compute_lambda
-.. automethod:: capture_walking.CaptureSolution.compute_switch_times
+.. automethod:: capture_walkgen.CaptureSolution.compute_lambda
+.. automethod:: capture_walkgen.CaptureSolution.compute_switch_times
 
 From there, all spatial mappings :math:`\lambda(s), \omega(s), t(s)` and time
 mappings :math:`\lambda(t), \omega(t), s(t)` can be accessed via:
 
-.. automethod:: capture_walking.CaptureSolution.lambda_from_s
-.. automethod:: capture_walking.CaptureSolution.lambda_from_t
-.. automethod:: capture_walking.CaptureSolution.omega_from_s
-.. automethod:: capture_walking.CaptureSolution.omega_from_t
-.. automethod:: capture_walking.CaptureSolution.s_from_t
-.. automethod:: capture_walking.CaptureSolution.t_from_s
+.. automethod:: capture_walkgen.CaptureSolution.lambda_from_s
+.. automethod:: capture_walkgen.CaptureSolution.lambda_from_t
+.. automethod:: capture_walkgen.CaptureSolution.omega_from_s
+.. automethod:: capture_walkgen.CaptureSolution.omega_from_t
+.. automethod:: capture_walkgen.CaptureSolution.s_from_t
+.. automethod:: capture_walkgen.CaptureSolution.t_from_s
 
 Walking controller
 ==================
@@ -143,7 +143,7 @@ Walking controller
 The ability to solve capture problems is turned into a full-fledged walking
 controller by the ``WalkingController`` class:
 
-.. autoclass:: capture_walking.WalkingController
+.. autoclass:: capture_walkgen.WalkingController
 
 This class is a `pymanoid <https://github.com/stephane-caron/pymanoid>`_
 process that you can readily schedule to your simulation:
@@ -167,16 +167,16 @@ Zero-step capture
 
 Zero-step capturability is handled by the `ZeroStepController` class:
 
-.. autoclass:: capture_walking.ZeroStepController
+.. autoclass:: capture_walkgen.ZeroStepController
 
 The target contact is set independently by calling:
 
-.. automethod:: capture_walking.ZeroStepController.set_contact
+.. automethod:: capture_walkgen.ZeroStepController.set_contact
 
 The ``pendulum`` reference to the inverted pendulum model is used to update the
 CoM state (position and velocity) when computing control inputs:
 
-.. automethod:: capture_walking.ZeroStepController.compute_controls
+.. automethod:: capture_walkgen.ZeroStepController.compute_controls
 
 These two inputs can then be sent to the IPM for zero-step capture.
 
@@ -185,16 +185,16 @@ One-step capture
 
 One-step capturability is handled by the `OneStepController` class:
 
-.. autoclass:: capture_walking.OneStepController
+.. autoclass:: capture_walkgen.OneStepController
 
 The support and target contacts are set independently by calling:
 
-.. automethod:: capture_walking.OneStepController.set_contacts
+.. automethod:: capture_walkgen.OneStepController.set_contacts
 
 The ``pendulum`` reference to the inverted pendulum model is used to update the
 CoM state (position and velocity) when computing control inputs:
 
-.. automethod:: capture_walking.OneStepController.compute_controls
+.. automethod:: capture_walkgen.OneStepController.compute_controls
 
 These two inputs can then be sent to the IPM for one-step capture.
 
@@ -204,13 +204,13 @@ Double-support capture
 At the end of an acyclic contact sequence, a simple double-support strategy is
 applied by the `DoubleSupportController` class:
 
-.. autoclass:: capture_walking.DoubleSupportController
+.. autoclass:: capture_walkgen.DoubleSupportController
 
 Like the two preceding classes, the ``pendulum`` reference to the inverted
 pendulum model is used to update the CoM state (position and velocity) when
 computing control inputs:
 
-.. automethod:: capture_walking.OneStepController.compute_controls
+.. automethod:: capture_walkgen.OneStepController.compute_controls
 
 These two inputs can then be sent to the robot's CoM task directly.
 

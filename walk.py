@@ -38,7 +38,7 @@ from pymanoid.gui import TrajectoryDrawer
 from pymanoid.models import InvertedPendulum
 from pymanoid.sim import gravity_const
 
-from capture_walking import WalkingController
+from capture_walkgen import WalkingController
 
 # Walking control parameters
 LAMBDA_MAX = 2.0 * gravity_const
